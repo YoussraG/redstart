@@ -143,7 +143,7 @@ def _():
     l = 2.0  # longueur [m]
 
     print(f"Constantes: g={g}, M={M}, l={l}")
-    return M, g
+    return M, g, l
 
 
 @app.cell(hide_code=True)
@@ -170,7 +170,7 @@ def _(mo):
 def _(np):
     def forces_cartesian(f, theta, phi):
         f_x = f * np.sin(theta + phi)
-        f_y = f * np.cos(theta + phi)
+        f_y = -f * np.cos(theta + phi)
         return f_x, f_y
 
     return (forces_cartesian,)
@@ -283,6 +283,13 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, l):
+    J = (1.0 / 12.0) * M * l**2
+    print(J)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -290,6 +297,36 @@ def _(mo):
 
     Give the ordinary differential equation that governs the evolution of the tilt angle $\theta$.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Le moment dynamique autour du centre de masse donne :
+
+    $$\sum \vec{M}_G = J \cdot \ddot{\theta}$$
+
+    Avec notre convention géométrique, le couple dû à la poussée appliquée à la base vaut :
+
+    $$\sum \vec{M}_G= \frac{\ell  f \sin(\phi)}2$$
+
+    Donc :
+
+    $$\ddot{\theta} = \frac{\ell f \sin(\phi)}{2J}$$
+    """)
+    return
+
+
+@app.cell
+def _(np):
+
+    def system_dynamics(J, l, f, phi):
+        sum_moments = l * f * np.sin(phi)/2
+        theta_dotdot = sum_moments / J
+        return theta_dotdot
+
+
     return
 
 
