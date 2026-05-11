@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return
+    return (np,)
 
 
 @app.cell(hide_code=True)
@@ -153,6 +153,26 @@ def _(mo):
 
     Compute the cartesian coordinates $f_x$ and $f_y$ of the force applied to the booster by the reactor, functions of $f$, $\theta$ and $\phi$.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On considère une force \(\vec{F}\) de norme \(f\), appliquée avec un angle total \((\theta + \phi)\) par rapport à l’axe vertical du repère orthonormé \(R(G,\vec{e_x},\vec{e_y})\).
+
+    Les composantes cartésiennes de cette force sont obtenues par projection trigonométrique :
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def forces_cartesian(f, theta, phi):
+        f_x = f * np.sin(theta + phi)
+        f_y = f * np.cos(theta + phi)
+        return f_x, f_y
+
     return
 
 
