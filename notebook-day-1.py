@@ -143,7 +143,7 @@ def _():
     l = 2.0  # longueur [m]
 
     print(f"Constantes: g={g}, M={M}, l={l}")
-    return
+    return M, g
 
 
 @app.cell(hide_code=True)
@@ -173,7 +173,7 @@ def _(np):
         f_y = f * np.cos(theta + phi)
         return f_x, f_y
 
-    return
+    return (forces_cartesian,)
 
 
 @app.cell(hide_code=True)
@@ -183,6 +183,93 @@ def _(mo):
 
     Give the ordinary differential equation that governs the evolution of the position $(x, y)$ of the center of mass of the booster.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Le mouvement du centre de masse \((x,y)\) est régi par la deuxième loi de Newton appliquée selon les deux axes du repère orthonormé \(R(G,\vec{e_x},\vec{e_y})\).
+
+    Le système étudié est soumis aux forces extérieures suivantes :
+        Bilan de force :
+    - la force de poussée \(\vec{F}\) exercée par le réacteur,
+    - le poids \(\vec{P}\) dû à la gravité.
+
+
+
+    ### Projection sur l’axe \(x\)
+
+    En appliquant la deuxième loi de Newton sur l’axe horizontal :
+
+    \[
+    \sum F_x = M\ddot{x}
+    \]
+
+    La seule force selon l’axe \(x\) est la composante horizontale de la poussée :
+
+    \[
+    f_x = f\sin(\theta+\phi)
+    \]
+
+    Ainsi :
+
+    \[
+    M\ddot{x} = f_x
+    \]
+
+    d’où :
+
+    \[
+    \boxed{\ddot{x} = \frac{f_x}{M}}
+    \]
+
+
+    En appliquant la deuxième loi de Newton sur l’axe vertical :
+
+    \[
+    \sum F_y = M\ddot{y}
+    \]
+
+    Les forces appliquées selon l’axe vertical sont :
+
+    - la composante verticale de la poussée \(f_y\),
+    - le poids \(Mg\), dirigé vers le bas.
+
+    On obtient alors :
+
+    \[
+    M\ddot{y} = f_y - Mg
+    \]
+
+    avec :
+
+    \[
+    f_y = f\cos(\theta+\phi)
+    \]
+
+    Ainsi :
+
+    \[
+    \boxed{\ddot{y} = \frac{f_y}{M} - g}
+    \]
+
+    ---
+    """)
+    return
+
+
+@app.cell
+def _(M, forces_cartesian, g):
+
+    def dynamique_centre_masse(f, theta, phi, M=M, g=g):
+        f_x, f_y = forces_cartesian(f, theta, phi)
+        x_dotdot = f_x / M
+        y_dotdot = (f_y / M) - g
+
+        return x_dotdot, y_dotdot
+
+
     return
 
 
