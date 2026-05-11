@@ -1,7 +1,12 @@
 import marimo
 
 __generated_with = "0.20.4"
-app = marimo.App()
+app = marimo.App(width="medium")
+
+
+@app.cell
+def _():
+    return
 
 
 @app.cell
@@ -11,7 +16,7 @@ def _():
     return (mo,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md("""
     # Redstart: A Lightweight Reusable Booster
@@ -19,13 +24,13 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.image(src="public/images/redstart.png")
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Project Redstart is an attempt to design the control systems of a reusable booster during landing.
@@ -33,7 +38,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     In principle, it is similar to SpaceX's Falcon Heavy Booster.
@@ -43,16 +48,16 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
-    mo.center(
-        mo.Html("""
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/RYUr-5PYA7s?si=EXPnjNVnqmJSsIjc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>""")
+    mo.center(
+        mo.Html("""
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/RYUr-5PYA7s?si=EXPnjNVnqmJSsIjc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>""")
     )
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## Dependencies
@@ -62,19 +67,19 @@ def _(mo):
 
 @app.cell
 def _():
-    import scipy
-    import scipy.integrate as sci
+    import scipy
+    import scipy.integrate as sci
 
-    import matplotlib as mpl
-    import matplotlib.pyplot as plt
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
 
-    import numpy as np
+    import numpy as np
     import numpy.linalg as la
 
     return np, plt, sci
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## The Model
@@ -88,13 +93,13 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.center(mo.image(src="public/images/geometry.svg"))
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## Constants
@@ -110,7 +115,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Getting Started
@@ -118,7 +123,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Constants
@@ -128,7 +133,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Nous définissons les constantes ( constante de gravité, la masse totale et la longueur entière du booster ) avec les valeurs dans l'énoncé.
@@ -139,15 +144,15 @@ def _(mo):
 
 @app.cell
 def _():
-    g = 1.0  # gravité [m/s^2]
-    M = 1.0  # masse totale [kg]
-    l = 2.0  # longueur [m]
+    g = 1.0  # gravité [m/s^2]
+    M = 1.0  # masse totale [kg]
+    l = 2.0  # longueur [m]
 
     print(f"Constantes: g={g}, M={M}, l={l}")
     return M, g, l
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Forces
@@ -157,7 +162,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     On considère une force \(\vec{F}\) de norme \(f\), appliquée avec un angle total \((\theta + \phi)\) par rapport à l’axe vertical du repère orthonormé \(R(G,\vec{e_x},\vec{e_y})\).
@@ -169,15 +174,15 @@ def _(mo):
 
 @app.cell
 def _(np):
-    def forces_cartesian(f, theta, phi):
-        f_x = f * np.sin(theta + phi)
-        f_y = -f * np.cos(theta + phi)
+    def forces_cartesian(f, theta, phi):
+        f_x = f * np.sin(theta + phi)
+        f_y = -f * np.cos(theta + phi)
         return f_x, f_y
 
     return (forces_cartesian,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Center of Mass
@@ -187,7 +192,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Le mouvement du centre de masse \((x,y)\) est régi par la deuxième loi de Newton appliquée selon les deux axes du repère orthonormé \(R(G,\vec{e_x},\vec{e_y})\).
@@ -262,19 +267,17 @@ def _(mo):
 
 @app.cell
 def _(M, forces_cartesian, g):
-
-    def dynamique_centre_masse(f, theta, phi, M=M, g=g):
-        f_x, f_y = forces_cartesian(f, theta, phi)
-        x_dotdot = f_x / M
-        y_dotdot = (f_y / M) - g
+    def dynamique_centre_masse(f, theta, phi, M=M, g=g):
+        f_x, f_y = forces_cartesian(f, theta, phi)
+        x_dotdot = f_x / M
+        y_dotdot = (f_y / M) - g
 
         return x_dotdot, y_dotdot
-
 
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Moment of inertia
@@ -286,12 +289,12 @@ def _(mo):
 
 @app.cell
 def _(M, l):
-    J = (1.0 / 12.0) * M * l**2
+    J = (1.0 / 12.0) * M * l**2
     print(J)
     return (J,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Tilt
@@ -301,7 +304,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Le moment dynamique autour du centre de masse donne :
@@ -321,17 +324,15 @@ def _(mo):
 
 @app.cell
 def _(np):
-
-    def system_dynamics(J, l, f, phi):
-        sum_moments = l * f * np.sin(phi)/2
-        theta_dotdot = sum_moments / J
+    def system_dynamics(J, l, f, phi):
+        sum_moments = l * f * np.sin(phi)/2
+        theta_dotdot = sum_moments / J
         return theta_dotdot
-
 
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Vector Field
@@ -354,7 +355,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Nous avons déjà trouvé précédemment (d'après le bilan des forces) les accélerations suivant x et y et (d'après la loi des moments) l'accélération angulaires que nous rassemblons dans le vecteur F.
@@ -365,25 +366,25 @@ def _(mo):
 
 @app.cell
 def _(J, M, forces_cartesian, g, l, np):
-    def vector_field(t, s, f, phi):
+    def vector_field(t, s, f, phi):
 
-        x, vx, y, vy, theta, omega = s
+        x, vx, y, vy, theta, omega = s
 
-        f_x, f_y = forces_cartesian(f=f, theta=theta, phi=phi)
+        f_x, f_y = forces_cartesian(f=f, theta=theta, phi=phi)
 
-        ax = f_x / M
-        ay = f_y / M - g
+        ax = f_x / M
+        ay = f_y / M - g
 
-        theta_dotdot = (l * f * np.sin(phi))/2*J
+        theta_dotdot = (l * f * np.sin(phi)) / (2 * J)
 
 
-        return np.array([
-            vx,     # dx/dt
-            ax,     # dvx/dt
-            vy,     # dy/dt
-            ay,     # dvy/dt
-            omega,  # dtheta/dt
-            theta_dotdot,  # domega/dt
+        return np.array([
+            vx,     # dx/dt
+            ax,     # dvx/dt
+            vy,     # dy/dt
+            ay,     # dvy/dt
+            omega,  # dtheta/dt
+            theta_dotdot,  # domega/dt
         ], dtype=float)
 
     return (vector_field,)
@@ -391,57 +392,55 @@ def _(J, M, forces_cartesian, g, l, np):
 
 @app.cell
 def _(np, sci, vector_field):
-    def redstart_solve(t_span, y0, f_phi, max_step=0.01):
+    def redstart_solve(t_span, y0, f_phi, max_step=0.01):
 
-        def dynamics(t, s):
-            f, phi = f_phi(t, s)
-            return vector_field(t, s, float(f), float(phi))
+        def dynamics(t, s):
+            f, phi = f_phi(t, s)
+            return vector_field(t, s, float(f), float(phi))
 
-        ivp = sci.solve_ivp(
-            fun=dynamics,
-            t_span=t_span,
-            y0=np.asarray(y0, dtype=float),
-            method="RK45",
-            dense_output=True,
-            max_step=max_step,
-        )
+        ivp = sci.solve_ivp(
+            fun=dynamics,
+            t_span=t_span,
+            y0=np.asarray(y0, dtype=float),
+            method="RK45",
+            dense_output=True,
+            max_step=max_step,
+        )
 
-        if not ivp.success:
-            raise RuntimeError(f"Echec solve_ivp: {ivp.message}")
+        if not ivp.success:
+            raise RuntimeError(f"Echec solve_ivp: {ivp.message}")
 
         return ivp.sol
-
-
 
     return (redstart_solve,)
 
 
 @app.cell
 def _(l, np, plt, redstart_solve):
-    def free_fall_example():
-        t_span = [0.0, 5.0]
-        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]  # [x, vx, y, vy, theta, omega]
+    def free_fall_example():
+        t_span = [0.0, 5.0]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]  # [x, vx, y, vy, theta, omega]
 
-        def f_phi(t, y):
-            return np.array([0.0, 0.0])  # [f, phi]
+        def f_phi(t, y):
+            return np.array([0.0, 0.0])  # [f, phi]
 
-        sol = redstart_solve(t_span, y0, f_phi)
-        t = np.linspace(t_span[0], t_span[1], 1000)
-        y_t = sol(t)[2]
-        plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
-        plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
-        plt.title("Free Fall")
-        plt.xlabel("time $t$")
-        plt.grid(True)
-        plt.legend()
-        return plt.gcf()
+        sol = redstart_solve(t_span, y0, f_phi)
+        t = np.linspace(t_span[0], t_span[1], 1000)
+        y_t = sol(t)[2]
+        plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
+        plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+        plt.title("Free Fall")
+        plt.xlabel("time $t$")
+        plt.grid(True)
+        plt.legend()
+        return plt.gcf()
 
 
     free_fall_example()
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Freefall test
@@ -455,7 +454,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Dans le cas de chute libre il n'y a que le poids qui agit sur le corps, on obtient donc :
@@ -475,7 +474,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Controlled Landing
@@ -489,7 +488,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     On impose $\phi(t)=0$ pour éviter toute rotation (couple nul), puis on construit un profil vertical $y(t)$ cubique qui respecte exactement les conditions aux bornes. Ensuite on en déduit
@@ -499,7 +498,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     On impose une trajectoire verticale **cubique** :
@@ -564,97 +563,94 @@ def _(mo):
 
 @app.cell
 def _(M, g, l, np, plt, redstart_solve):
-    def controlled_landing_example():
-        """
-        Atterrissage contrôlé en imposant une trajectoire verticale cubique.
+    def controlled_landing_example():
+        """
+        Atterrissage contrôlé via une trajectoire verticale cubique.
 
-        On choisit y(t) = a t^3 + b t^2 + c t + d, avec:
-        y(0)=10, y'(0)=-2, y(5)=l, y'(5)=0.
-        """
-        t0, tf = 0.0, 5.0
-        y_init, vy_init = 10.0, -2.0
+        Conditions : y(0)=10, vy(0)=-2, y(tf)=l/2, vy(tf)=0, phi=0.
+        La cible est y = l/2 (centre de masse au niveau du sol quand
+        le bas du booster touche la plateforme).
+        """
+        t0, tf = 0.0, 5.0
+        y_init, vy_init = 10.0, -2.0
+        y_final = l / 2.0   # ← cible correcte : l/2 = 1.0
 
-        # Coefficients c et d fixés par les conditions initiales.
-        c = vy_init
-        d = y_init
+        # y(t) = a*t^3 + b*t^2 + c*t + d
+        # Conditions initiales fixent c et d directement.
+        c_coef = vy_init          # y'(0) = c
+        d_coef = y_init           # y(0)  = d
 
-        # Résolution de a et b via les conditions finales.
-        # [tf^3 tf^2] [a] = [l - c*tf - d]
-        # [3tf^2 2tf] [b]   [0 - c]
-        A = np.array([[tf**3, tf**2], [3*tf**2, 2*tf]], dtype=float)
-        rhs = np.array([l - c*tf - d, -c], dtype=float)
-        a, b = np.linalg.solve(A, rhs)
+        # Deux équations pour a et b :
+        #   a*tf^3 + b*tf^2 = y_final - c*tf - d
+        #   3*a*tf^2 + 2*b*tf = -c
+        A = np.array([[tf**3, tf**2],
+                      [3*tf**2, 2*tf]], dtype=float)
+        rhs = np.array([y_final - c_coef*tf - d_coef,
+                        -c_coef], dtype=float)
+        a_coef, b_coef = np.linalg.solve(A, rhs)
 
-        def y_ref(t):
-            return a*t**3 + b*t**2 + c*t + d
+        def y_ref(t):
+            return a_coef*t**3 + b_coef*t**2 + c_coef*t + d_coef
 
-        def vy_ref(t):
-            return 3*a*t**2 + 2*b*t + c
+        def vy_ref(t):
+            return 3*a_coef*t**2 + 2*b_coef*t + c_coef
 
-        def ay_ref(t):
-            return 6*a*t + 2*b
+        def ay_ref(t):
+            return 6*a_coef*t + 2*b_coef
 
-   
-        def f_phi(t, _s):
-            f = M * (ay_ref(t) + g)
-            return np.array([f, 0.0], dtype=float)
+        # Loi de commande : f déduit de Newton (phi=0 => pas de couple)
+        def f_phi(t, _s):
+            f_val = float(M * (ay_ref(t) + g))
+            f_val = max(f_val, 0.0)   # la poussée ne peut pas être négative
+            return np.array([f_val, 0.0], dtype=float)
 
-        # État initial complet
-        s0 = np.array([0.0, 0.0, y_init, vy_init, 0.0, 0.0], dtype=float)
-        sol = redstart_solve([t0, tf], s0, f_phi)
+        s0 = np.array([0.0, 0.0, y_init, vy_init, 0.0, 0.0], dtype=float)
+        sol = redstart_solve([t0, tf], s0, f_phi)
 
-        # Évaluation
-        t = np.linspace(t0, tf, 1000)
-        s = sol(t)
-        y_num, vy_num = s[2], s[3]
-        y_target, vy_target = y_ref(t), vy_ref(t)
-        f_cmd = np.array([f_phi(tt, None)[0] for tt in t])
+        t = np.linspace(t0, tf, 1000)
+        s = sol(t)
+        y_num  = s[2]
+        vy_num = s[3]
+        f_cmd  = np.array([f_phi(tt, None)[0] for tt in t])
 
-        # Tracés lisibles
-        fig, axes = plt.subplots(1, 3, figsize=(16, 4.6))
+        fig, axes = plt.subplots(1, 3, figsize=(16, 4.6))
 
-        axes[0].plot(t, y_num, lw=2.2, label="y numérique")
-        axes[0].plot(t, y_target, "--", lw=1.8, label="y référence")
-        axes[0].axhline(l, color="gray", ls=":", label="cible y=l")
-        axes[0].set_title("Altitude")
-        axes[0].set_xlabel("t [s]")
-        axes[0].set_ylabel("y [m]")
-        axes[0].grid(alpha=0.3)
-        axes[0].legend()
+        axes[0].plot(t, y_num,        lw=2.2,  label="y simulé")
+        axes[0].plot(t, y_ref(t),     "--", lw=1.8, label="y référence")
+        axes[0].axhline(y_final, color="red", ls=":", label=f"cible y={y_final}")
+        axes[0].set_title("Altitude")
+        axes[0].set_xlabel("t [s]"); axes[0].set_ylabel("y [m]")
+        axes[0].grid(alpha=0.3); axes[0].legend()
 
-        axes[1].plot(t, vy_num, lw=2.2, label="vy numérique")
-        axes[1].plot(t, vy_target, "--", lw=1.8, label="vy référence")
-        axes[1].axhline(0.0, color="gray", ls=":")
-        axes[1].set_title("Vitesse verticale")
-        axes[1].set_xlabel("t [s]")
-        axes[1].set_ylabel("vy [m/s]")
-        axes[1].grid(alpha=0.3)
-        axes[1].legend()
+        axes[1].plot(t, vy_num,       lw=2.2,  label="vy simulé")
+        axes[1].plot(t, vy_ref(t),    "--", lw=1.8, label="vy référence")
+        axes[1].axhline(0.0, color="red", ls=":", label="cible vy=0")
+        axes[1].set_title("Vitesse verticale")
+        axes[1].set_xlabel("t [s]"); axes[1].set_ylabel("vy [m/s]")
+        axes[1].grid(alpha=0.3); axes[1].legend()
 
-        axes[2].plot(t, f_cmd, lw=2.2, color="tab:orange")
-        axes[2].axhline(M*g, color="gray", ls=":", label="Mg")
-        axes[2].set_title("Commande de poussée")
-        axes[2].set_xlabel("t [s]")
-        axes[2].set_ylabel("f [N]")
-        axes[2].grid(alpha=0.3)
-        axes[2].legend()
+        axes[2].plot(t, f_cmd, lw=2.2, color="tab:orange", label="f(t)")
+        axes[2].axhline(M*g, color="gray", ls=":", label="Mg")
+        axes[2].set_title("Commande de poussée")
+        axes[2].set_xlabel("t [s]"); axes[2].set_ylabel("f [N]")
+        axes[2].grid(alpha=0.3); axes[2].legend()
 
-        plt.suptitle("Atterrissage contrôlé (profil cubique)")
-        plt.tight_layout()
+        plt.suptitle("Atterrissage contrôlé (profil cubique)")
+        plt.tight_layout()
 
-        print("Etat final simulé:")
-        print(f"  y(tf)  = {y_num[-1]:.6f}  (cible: {l:.6f})")
-        print(f"  vy(tf) = {vy_num[-1]:.6f} (cible: 0.000000)")
-        print(f"  theta(tf) = {s[4, -1]:.6f} rad")
+        print("État final simulé vs cibles :")
+        print(f"  y(tf)     = {y_num[-1]:.6f}  (cible : {y_final:.6f})")
+        print(f"  vy(tf)    = {vy_num[-1]:.6f} (cible : 0.000000)")
+        print(f"  theta(tf) = {s[4,-1]:.6f} rad (cible : 0.000000)")
 
-        return fig, sol, f_phi
+        return fig, f_phi
 
-    _, sol_controlled, fphi_controlled = controlled_landing_example()
+    _fig_ctrl, fphi_controlled = controlled_landing_example()
     plt.show()
     return (fphi_controlled,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Animations
@@ -675,7 +671,7 @@ def _():
     return (svg,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Environment
@@ -731,37 +727,37 @@ def _(mo):
 
 @app.cell
 def _():
-    from IPython.display import SVG, display
+    from IPython.display import SVG, display
     from IPython.display import HTML
 
-    return HTML, SVG, display
+    return SVG, display
 
 
 @app.cell
 def _(SVG, display):
-    def world(view_box, *objects):
+    def world(view_box, *objects):
 
-        x_min, x_max, y_min, y_max = map(float, view_box)
-        width = x_max - x_min
-        height = y_max - y_min
+        x_min, x_max, y_min, y_max = map(float, view_box)
+        width = x_max - x_min
+        height = y_max - y_min
 
-   
-        svg_parts = [
-            f'<svg viewBox="{x_min} {y_min} {width} {height}" width="520" xmlns="http://www.w3.org/2000/svg">',
-            '  <rect width="100%" height="100%" fill="#f8fbff"/>',
-            '  <g transform="scale(1,-1)">',
-            f'    <rect x="{x_min}" y="0" width="{width}" height="{max(0.0, y_max)}" fill="#b7e3ff"/>',
-            f'    <rect x="{x_min}" y="{y_min}" width="{width}" height="{max(0.0, -y_min)}" fill="#8c6a43"/>',
-            '    <rect x="-1" y="0" width="2" height="0.12" fill="#26a65b" stroke="white" stroke-width="0.03"/>',
-            '    <line x1="0" y1="0" x2="0" y2="0.3" stroke="white" stroke-width="0.03"/>',
-        ]
 
-   
-        for obj in objects:
-            svg_parts.append(str(obj))
+        svg_parts = [
+            f'<svg viewBox="{x_min} {y_min} {width} {height}" width="520" xmlns="http://www.w3.org/2000/svg">',
+            '  <rect width="100%" height="100%" fill="#f8fbff"/>',
+            '  <g transform="scale(1,-1)">',
+            f'    <rect x="{x_min}" y="0" width="{width}" height="{max(0.0, y_max)}" fill="#b7e3ff"/>',
+            f'    <rect x="{x_min}" y="{y_min}" width="{width}" height="{max(0.0, -y_min)}" fill="#8c6a43"/>',
+            '    <rect x="-1" y="0" width="2" height="0.12" fill="#26a65b" stroke="white" stroke-width="0.03"/>',
+            '    <line x1="0" y1="0" x2="0" y2="0.3" stroke="white" stroke-width="0.03"/>',
+        ]
 
-        svg_parts += ["  </g>", "</svg>"]
-        return "\n".join(svg_parts)
+
+        for obj in objects:
+            svg_parts.append(str(obj))
+
+        svg_parts += ["  </g>", "</svg>"]
+        return "\n".join(svg_parts)
 
 
 
@@ -781,16 +777,16 @@ def _(mo, svg, world):
             mo.Html(
                 world(
                     [-3, 3, -2, 4],
-                    svg.rect(x=-1, y=0, width=2, height=2, fill="black"),
+                    svg.rect(x=-1, y=0, width=2, height=6, fill="black"),
                 )
             ),
             # Display a world with a red square in the top-left corner of the view box
             # and a blue square on the top-right corner of the view box.
             mo.Html(
                 world(
-                    [-3, 3, -2, 4],
-                    svg.rect(x=-3, y=2, width=2, height=2, fill="red"),
-                    svg.rect(x=1, y=2, width=2, height=2, fill="blue"),
+                    [-3, 3, -3, 10],
+                    svg.rect(x=-3, y=2, width=2, height=1, fill="red"),
+                    svg.rect(x=1, y=2, width=2, height=1, fill="blue"),
                 )
             )
         ],
@@ -800,7 +796,7 @@ def _(mo, svg, world):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Booster Drawing
@@ -854,52 +850,52 @@ def _(mo):
 
 @app.cell
 def _(M, g, l, np):
-    def booster(x, y, theta, f, phi):
+    def booster(x, y, theta, f, phi):
 
-        # Géométrie simple du booster
-        body_length = 2.0 * l
-        body_width = 0.22
+        # Géométrie simple du booster
+        body_length = 2.0 * l
+        body_width = 0.22
 
-        # Échelle de flamme (bornée pour garder une visualisation stable)
-        flame_len = 0.5 * l * (f / (M * g)) if M * g > 0 else 0.0
-        flame_len = float(np.clip(flame_len, 0.0, 2.5 * l))
+        # Échelle de flamme (bornée pour garder une visualisation stable)
+        flame_len = 0.5 * l * (f / (M * g)) if M * g > 0 else 0.0
+        flame_len = float(np.clip(flame_len, 0.0, 2.5 * l))
 
-        # Transformations: translation puis rotation (SVG en degrés)
-        theta_deg = float(theta * 180.0 / np.pi)
-        phi_deg = float(phi * 180.0 / np.pi)
+        # Transformations: translation puis rotation (SVG en degrés)
+        theta_deg = float(theta * 180.0 / np.pi)
+        phi_deg = float(phi * 180.0 / np.pi)
 
-        parts = [
-            f'<g transform="translate({x:.6f},{y:.6f}) rotate({-theta_deg:.6f})">'
-        ]
+        parts = [
+            f'<g transform="translate({x:.6f},{y:.6f}) rotate({-theta_deg:.6f})">'
+        ]
 
-        # Corps (centré au centre de masse)
-        parts.append(
-            f'<rect x="{-body_width / 2:.6f}" y="{-body_length / 2:.6f}" width="{body_width:.6f}" height="{body_length:.6f}" '
-            'fill="#4b5563" stroke="#111827" stroke-width="0.03"/>'
-        )
+        # Corps (centré au centre de masse)
+        parts.append(
+            f'<rect x="{-body_width / 2:.6f}" y="{-body_length / 2:.6f}" width="{body_width:.6f}" height="{body_length:.6f}" '
+            'fill="#4b5563" stroke="#111827" stroke-width="0.03"/>'
+        )
 
-        # Nez du booster
-        parts.append(
-            f'<polygon points="0,{body_length / 2:.6f} {body_width / 2:.6f},{body_length / 2 - 0.2:.6f} {-body_width / 2:.6f},{body_length / 2 - 0.2:.6f}" '
-            'fill="#d97706"/>'
-        )
+        # Nez du booster
+        parts.append(
+            f'<polygon points="0,{body_length / 2:.6f} {body_width / 2:.6f},{body_length / 2 - 0.2:.6f} {-body_width / 2:.6f},{body_length / 2 - 0.2:.6f}" '
+            'fill="#d97706"/>'
+        )
 
-        # Flamme à la base (y = -body_length/2), orientée avec phi
-        if f > 1e-9:
-            parts.append(
-                f'<g transform="translate(0,{-body_length / 2:.6f}) rotate({phi_deg:.6f})">'
-            )
-            parts.append(
-                f'<polygon points="0,0 {body_width * 0.35:.6f},{-flame_len:.6f} {-body_width * 0.35:.6f},{-flame_len:.6f}" '
-                'fill="#fb923c" opacity="0.85"/>'
-            )
-            parts.append(
-                f'<polygon points="0,0 {body_width * 0.18:.6f},{-0.72 * flame_len:.6f} {-body_width * 0.18:.6f},{-0.72 * flame_len:.6f}" '
-                'fill="#fde047" opacity="0.95"/>'
-            )
-            parts.append("</g>")
+        # Flamme à la base (y = -body_length/2), orientée avec phi
+        if f > 1e-9:
+            parts.append(
+                f'<g transform="translate(0,{-body_length / 2:.6f}) rotate({phi_deg:.6f})">'
+            )
+            parts.append(
+                f'<polygon points="0,0 {body_width * 0.35:.6f},{-flame_len:.6f} {-body_width * 0.35:.6f},{-flame_len:.6f}" '
+                'fill="#fb923c" opacity="0.85"/>'
+            )
+            parts.append(
+                f'<polygon points="0,0 {body_width * 0.18:.6f},{-0.72 * flame_len:.6f} {-body_width * 0.18:.6f},{-0.72 * flame_len:.6f}" '
+                'fill="#fde047" opacity="0.95"/>'
+            )
+            parts.append("</g>")
 
-        parts.append("</g>")
+        parts.append("</g>")
         return "\n".join(parts)
 
     return (booster,)
@@ -907,34 +903,33 @@ def _(M, g, l, np):
 
 @app.cell
 def _(M, booster, g, l, mo, np, world):
-    mo.hstack(
-        [
-            mo.Html(
-                world(
-                    [-3, 3, -2, 4],
-                    booster(0, l/2, 0, 0, 0),
-                )
-            ),
-            mo.Html(
-                world(
-                    [-3, 3, -2, 4],
-                    booster(0, l, 0, M * g, 0),
-                )
-            ),
-            mo.Html(
-                world(
-                    [-3, 3, -2, 4],
-                    booster(-l/2, l, np.pi / 4, 2 * M * g, np.pi / 2),
-                )
-            ),
-        ],
-        justify="space-around",
+    mo.hstack(
+        [
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l/2, 0, 0, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(0, l, 0, M * g, 0),
+                )
+            ),
+            mo.Html(
+                world(
+                    [-3, 3, -2, 4],
+                    booster(-l/2, l, np.pi / 4, 2 * M * g, np.pi / 2),
+                )
+            ),
+        ],
+        justify="space-around",
     )
-
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Booster Animation
@@ -982,11 +977,132 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(M, g, l, np):
+    def booster_anim(x_fun, y_fun, theta_fun, f_fun, phi_fun, T=5.0, n_frames=120):
+            t_arr = np.linspace(0.0, T, n_frames)
+
+            x   = np.array([x_fun(tt)     for tt in t_arr], dtype=float)
+            y   = np.array([y_fun(tt)     for tt in t_arr], dtype=float)
+            th  = np.array([theta_fun(tt) for tt in t_arr], dtype=float)
+            f   = np.array([f_fun(tt)     for tt in t_arr], dtype=float)
+            ph  = np.array([phi_fun(tt)   for tt in t_arr], dtype=float)
+
+            margin = 1.2
+            x_min = float(x.min() - margin)
+            x_max = float(x.max() + margin)
+            y_min = min(-1.0, float(y.min() - margin))
+            y_max = max(4.0,  float(y.max() + margin))
+            vb_w  = x_max - x_min
+            vb_h  = y_max - y_min
+
+            # Flamme
+            flame_len = np.clip(0.5 * l * (f / (M * g)), 0.0, 2.5 * l)
+
+            # Toutes les keyvalues en une seule passe
+            kf_booster, kf_flame_grp, kf_outer, kf_inner = [], [], [], []
+            for xi, yi, thi, phi_i, fl in zip(x, y, th, ph, flame_len):
+                deg     = -thi * 180.0 / np.pi
+                phi_deg =  phi_i * 180.0 / np.pi
+                # Un seul animateTransform : translate ET rotate combinés
+                kf_booster.append(f"translate({xi:.4f},{yi:.4f}) rotate({deg:.4f})")
+                # Groupe flamme : translate fixe vers la base + rotate(phi)
+                kf_flame_grp.append(f"translate(0,-1.0) rotate({phi_deg:.4f})")
+                w = 0.07
+                kf_outer.append(f"0,0 {w:.4f},{-fl:.4f} {-w:.4f},{-fl:.4f}")
+                kf_inner.append(f"0,0 {w*0.5:.4f},{-0.72*fl:.4f} {-w*0.5:.4f},{-0.72*fl:.4f}")
+
+            sep = ";"
+            v_booster   = sep.join(kf_booster)
+            v_flame_grp = sep.join(kf_flame_grp)
+            v_outer     = sep.join(kf_outer)
+            v_inner     = sep.join(kf_inner)
+
+            # Dans le SVG on flip l'axe Y pour que y croisse vers le haut.
+            # viewBox en coordonnées SVG (y vers le bas) :
+            #   SVG_y = -CART_y   =>   on translate de (0, -(y_min+y_max)) après scale
+            # Le groupe racine applique : scale(1,-1) translate(0, -(y_min+y_max))
+            # ce qui envoie le point cartésien (cx, cy) vers SVG (cx, -(cy))
+            # avec l'origine SVG en haut-à-gauche.
+            svg_flip = f"scale(1,-1) translate(0,{-(y_min + y_max):.4f})"
+
+            # Keyvalues pour animateTransform type="translate" (mouvement du CM)
+            v_translate = ";".join(f"{xi:.4f},{-yi:.4f}" for xi, yi in zip(x, y))
+            # Keyvalues pour animateTransform type="rotate" (tilt du booster)
+            # Dans l'espace SVG (y flippé) une rotation CCW devient CW → signe inversé
+            v_rotate    = ";".join(f"{thi * 180.0 / np.pi:.4f}" for thi in th)
+            # Keyvalues pour la rotation de la flamme (phi, même convention)
+            v_phi_rot   = ";".join(f"{phi_i * 180.0 / np.pi:.4f}" for phi_i in ph)
+
+            return f'''<svg viewBox="{x_min:.4f} {-y_max:.4f} {vb_w:.4f} {vb_h:.4f}" width="560" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100%" height="100%" fill="#f8fbff"/>
+      <!-- Fond ciel -->
+      <rect x="{x_min:.4f}" y="{-y_max:.4f}" width="{vb_w:.4f}" height="{y_max:.4f}" fill="#b7e3ff"/>
+      <!-- Sol -->
+      <rect x="{x_min:.4f}" y="0" width="{vb_w:.4f}" height="{max(0.01,-y_min):.4f}" fill="#8c6a43"/>
+      <!-- Plateforme d atterrissage -->
+      <rect x="-1" y="-0.12" width="2" height="0.12" fill="#26a65b" stroke="white" stroke-width="0.03"/>
+
+      <!-- Groupe de translation du CM (coordonnées SVG, y vers le bas) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate"
+          dur="{T:.3f}s" repeatCount="indefinite" calcMode="linear"
+          values="{v_translate}"/>
+        <!-- Groupe de rotation (tilt) — dans l espace SVG y-flippé le signe est inversé -->
+        <g>
+          <animateTransform attributeName="transform" type="rotate"
+            dur="{T:.3f}s" repeatCount="indefinite" calcMode="linear"
+            values="{v_rotate}"/>
+          <!-- Corps du booster : dessiné en coordonnées SVG (y vers le bas)
+               bas = +1.0, haut = -1.0, nez en haut -->
+          <rect x="-0.11" y="-1.0" width="0.22" height="2.0" fill="#4b5563" stroke="#111827" stroke-width="0.03"/>
+          <!-- Nez (haut du booster en SVG = y négatif) -->
+          <polygon points="0,-1.0 0.11,-0.8 -0.11,-0.8" fill="#d97706"/>
+          <!-- Groupe flamme ancré à la base (y=+1.0 en SVG) -->
+          <g transform="translate(0,1.0)">
+            <g>
+              <animateTransform attributeName="transform" type="rotate"
+                dur="{T:.3f}s" repeatCount="indefinite" calcMode="linear"
+                values="{v_phi_rot}"/>
+              <!-- Flamme extérieure : pointe vers y+ (vers le bas en SVG = vers le sol) -->
+              <polygon fill="#fb923c" opacity="0.85">
+                <animate attributeName="points" dur="{T:.3f}s" repeatCount="indefinite" calcMode="linear" values="{v_outer}"/>
+              </polygon>
+              <polygon fill="#fde047" opacity="0.95">
+                <animate attributeName="points" dur="{T:.3f}s" repeatCount="indefinite" calcMode="linear" values="{v_inner}"/>
+              </polygon>
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>'''
+
+    return (booster_anim,)
+
+
+@app.cell
+def _(M, booster_anim, g, l, mo, np, world):
+    def booster_anim_0():
+        T = 5.0
+        def x(t):
+            return -l/2 + l * (t / T)
+        def y(t):
+            return l/2 + l/2 * (t / T)
+        def theta(t):
+            return (t / T) * 2 * np.pi
+        def f(t):
+            return M * g * (t / T)
+        def phi(t):
+            return 2 * np.pi * (t / T)
+        return booster_anim(x, y, theta, f, phi, T=T)
+
+    mo.Html(
+        world([-10, 10, -10, 10], booster_anim_0())
+    ).center()
+
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ## 🧩 Animated Simulation Results
@@ -1005,87 +1121,88 @@ def _(mo):
 
 
 @app.cell
-def _(
-    HTML,
-    M,
-    booster_anim,
-    display,
-    fphi_controlled,
-    g,
-    l,
-    np,
-    plt,
-    redstart_solve,
-):
-    def simulate_case(name, y0, f_phi, T=5.0):
+def _(M, booster_anim, fphi_controlled, g, l, mo, np, plt, redstart_solve):
+    def simulate_case(name, y0, f_phi_fn, T=5.0):
+        sol = redstart_solve([0.0, T], y0, f_phi_fn)
 
-        t_span = [0.0, T]
-        sol = redstart_solve(t_span, y0, f_phi)
-        t = np.linspace(0.0, T, 500)
-        s = sol(t)
+        def x_fn(tt):   return float(sol(tt)[0])
+        def y_fn(tt):   return float(sol(tt)[2])
+        def th_fn(tt):  return float(sol(tt)[4])
+        def f_fn(tt):   return float(f_phi_fn(tt, sol(tt))[0])
+        def phi_fn(tt): return float(f_phi_fn(tt, sol(tt))[1])
 
+        anim = booster_anim(x_fn, y_fn, th_fn, f_fn, phi_fn, T=T)
 
-        def x_fun(tt):
-            return float(sol(tt)[0])
-        def y_fun(tt):
-            return float(sol(tt)[2])
-        def th_fun(tt):
-            return float(sol(tt)[4])
-        def f_fun(tt):
-            return float(f_phi(tt, sol(tt))[0])
-        def phi_fun(tt):
-            return float(f_phi(tt, sol(tt))[1])
+        t_arr = np.linspace(0.0, T, 500)
+        s_arr = sol(t_arr)
+        return t_arr, s_arr, anim
 
-        anim_html = booster_anim(x_fun, y_fun, th_fun, f_fun, phi_fun, T=T)
+    T = 5.0
+    y0_std  = np.array([0.0, 0.0, 10.0,  0.0, 0.0, 0.0], dtype=float)
+    y0_ctrl = np.array([0.0, 0.0, 10.0, -2.0, 0.0, 0.0], dtype=float)
 
-        print(f"{name}")
-        print(f"  y(T)={s[2,-1]:.3f}, vy(T)={s[3,-1]:.3f}, theta(T)={s[4,-1]:.3f} rad")
-        return t, s, anim_html
+    fphi_1 = lambda _t, _s: np.array([0.0,       0.0],        dtype=float)
+    fphi_2 = lambda _t, _s: np.array([M * g,     0.0],        dtype=float)
+    fphi_3 = lambda _t, _s: np.array([M * g,     np.pi/8.0],  dtype=float)
+    fphi_4 = fphi_controlled
 
-    T = 5.0
-    y0_std = np.array([0.0, 0.0, 10.0, 0.0, 0.0, 0.0], dtype=float)
+    cases = [
+        ("1) Free fall",         y0_std,  fphi_1),
+        ("2) Hovering",          y0_std,  fphi_2),
+        ("3) Tilted thrust",     y0_std,  fphi_3),
+        ("4) Controlled landing", y0_ctrl, fphi_4),
+    ]
 
-    # 1) Chute libre
-    fphi_1 = lambda _t, _s: np.array([0.0, 0.0], dtype=float)
+    results = [simulate_case(nm, y0i, ui, T=T) for (nm, y0i, ui) in cases]
 
-    # 2) Vol stationnaire idéal (f = Mg)
-    fphi_2 = lambda _t, _s: np.array([M * g, 0.0], dtype=float)
+    # ── Graphes comparatifs ──────────────────────────────────────────────────
+    fig2, axes2 = plt.subplots(2, 2, figsize=(12, 8))
+    for ax, (nm, _, _), (t_r, s_r, _) in zip(axes2.flat, cases, results):
+        ax.plot(t_r, s_r[2], lw=2.0, label="y(t)")
+        ax.plot(t_r, s_r[3], lw=1.7, label="vy(t)")
+        ax.axhline(l/2, color="red",  ls="--", alpha=0.7, label="cible y=l/2")
+        ax.axhline(l,   color="gray", ls=":",  alpha=0.5, label="y=l")
+        ax.set_title(nm); ax.set_xlabel("t [s]")
+        ax.grid(alpha=0.3); ax.legend(fontsize=8)
+    plt.suptitle("Comparaison des 4 scénarios")
+    plt.tight_layout()
 
-    # 3) Poussée inclinée constante
-    fphi_3 = lambda _t, _s: np.array([M * g, np.pi / 8.0], dtype=float)
+    # ── Rapport terminal ─────────────────────────────────────────────────────
+    for (nm, _, _), (t_r, s_r, _) in zip(cases, results):
+        print(f"{nm}")
+        print(f"  y(T)={s_r[2,-1]:.4f}  vy(T)={s_r[3,-1]:.4f}  θ(T)={s_r[4,-1]:.4f} rad")
 
-    # 4) Atterrissage contrôlé (fonction calculée plus haut)
-    y0_ctrl = np.array([0.0, 0.0, 10.0, -2.0, 0.0, 0.0], dtype=float)
-    fphi_4 = fphi_controlled
+    # ── Animations côte à côte (2×2) ─────────────────────────────────────────
+    anim_widgets = [
+        mo.vstack([mo.md(f"**{nm}**"), mo.Html(anim)])
+        for (nm, _, _), (_, _, anim) in zip(cases, results)
+    ]
 
-    cases = [
-        ("1) Free fall", y0_std, fphi_1),
-        ("2) Hovering", y0_std, fphi_2),
-        ("3) Tilted thrust", y0_std, fphi_3),
-        ("4) Controlled landing", y0_ctrl, fphi_4),
-    ]
-
-    results = [simulate_case(name, y0, u, T=T) for (name, y0, u) in cases]
-
-
-    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
-    for ax, (name, _, _), (t, s, _) in zip(axes.flat, cases, results):
-        ax.plot(t, s[2], lw=2.0, label="y(t)")
-        ax.plot(t, s[3], lw=1.7, label="vy(t)")
-        ax.axhline(l, color="gray", ls=":", alpha=0.7)
-        ax.set_title(name)
-        ax.set_xlabel("t [s]")
-        ax.grid(alpha=0.3)
-        ax.legend()
-
-    plt.suptitle("Comparaison des 4 scénarios")
-    plt.tight_layout()
-    plt.show()
+    mo.vstack([
+        fig2,
+        mo.hstack(anim_widgets[:2], justify="space-around"),
+        mo.hstack(anim_widgets[2:], justify="space-around"),
+    ])
+    return
 
 
-    for (name, _, _), (_, _, anim) in zip(cases, results):
-        display(HTML(f"<h4>{name}</h4>"))
-        display(HTML(anim))
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _():
     return
 
 
