@@ -131,6 +131,24 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Nous définissons les constantes ( constante de gravité, la masse totale et la longueur entière du booster ) avec les valeurs dans l'énoncé.
+    """)
+    return
+
+
+@app.cell
+def _():
+    g = 1.0  # gravité [m/s^2]
+    M = 1.0  # masse totale [kg]
+    l = 2.0  # longueur [m]
+
+    print(f"Constantes: g={g}, M={M}, l={l}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Forces
 
     Compute the cartesian coordinates $f_x$ and $f_y$ of the force applied to the booster by the reactor, functions of $f$, $\theta$ and $\phi$.
