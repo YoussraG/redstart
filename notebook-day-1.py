@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return (np,)
+    return np, plt, sci
 
 
 @app.cell(hide_code=True)
@@ -287,7 +287,7 @@ def _(mo):
 def _(M, l):
     J = (1.0 / 12.0) * M * l**2
     print(J)
-    return
+    return (J,)
 
 
 @app.cell(hide_code=True)
@@ -362,25 +362,110 @@ def _(mo):
     return
 
 
+@app.cell
+def _(J, M, forces_cartesian, g, l, np):
+    def vector_field(t, s, f, phi):
+
+        x, vx, y, vy, theta, omega = s
+   
+        f_x, f_y = forces_cartesian(f=f, theta=theta, phi=phi)
+
+        ax = f_x / M
+        ay = -f_y / M - g
+
+        theta_dotdot = (l * f * np.sin(phi))/2*J
+    
+
+        return np.array([
+            vx,     # dx/dt
+            ax,     # dvx/dt
+            vy,     # dy/dt
+            ay,     # dvy/dt
+            omega,  # dtheta/dt
+            theta_dotdot,  # domega/dt
+        ], dtype=float)
+
+    return (vector_field,)
+
+
+@app.cell
+def _():
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
-    ## 🧩 Simulation
+    _df = mo.sql(
+        f"""
+        mo.md(r\"""
+        ## 🧩 Simulation
 
-    Define a function `redstart_solve` that, given the input parameters:
+        Define a function `redstart_solve` that, given the input parameters:
 
-    - `t_span`: a pair of initial time `t_0` and final time `t_f`,
-    - `y0`: the value of `[x, vx, y, vy, theta, omega]` at `t_0`,
-    - `f_phi`: a function that given the current time `t` and current state value `y`
-         returns the values of the inputs `f` and `phi` in an array.
+        - `t_span`: a pair of initial time `t_0` and final time `t_f`,
+        - `y0`: the value of `[x, vx, y, vy, theta, omega]` at `t_0`,
+        - `f_phi`: a function that given the current time `t` and current state value `y`
+             returns the values of the inputs `f` and `phi` in an array.
 
-    returns:
+        returns:
 
-    - `sol`: a function that given a time `t` returns the value of `[x, vx, y, vy, theta, omega]` at time `t` (and that also accepts 1d-arrays of times for multiple state evaluations).
+        - `sol`: a function that given a time `t` returns the value of `[x, vx, y, vy, theta, omega]` at time `t` (and that also accepts 1d-arrays of times for multiple state evaluations).
 
-    A typical usage would be:
+        A typical usage would be:
 
-    ```python
+        ```python
+        def free_fall_example():
+            t_span = [0.0, 5.0]
+            y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] # [x, vx, y, vy, theta, omega]
+            def f_phi(t, y):
+                return np.array([0.0, 0.0]) # [f, phi]
+            sol = redstart_solve(t_span, y0, f_phi)
+            t = np.linspace(t_span[0], t_span[1], 1000)
+            y_t = sol(t)[2]
+            plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
+            plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+            plt.title("Free Fall")
+            plt.xlabel("time $t$")
+            plt.grid(True)
+            plt.legend()
+            return plt.gcf()
+        free_fall_example()
+        ```
+        \""")
+        """
+    )
+    return
+
+
+@app.cell
+def _(np, sci, vector_field):
+    def redstart_solve(t_span, y0, f_phi, max_step=0.01):
+
+        def dynamics(t, s):
+            f, phi = f_phi(t, s)
+            return vector_field(t, s, float(f), float(phi))
+
+        ivp = sci.solve_ivp(
+            fun=dynamics,
+            t_span=t_span,
+            y0=np.asarray(y0, dtype=float),
+            method="RK45",
+            dense_output=True,
+            max_step=max_step,
+        )
+
+        if not ivp.success:
+            raise RuntimeError(f"Echec solve_ivp: {ivp.message}")
+
+        return ivp.sol
+
+    
+
+    return (redstart_solve,)
+
+
+@app.cell
+def _(l, np, plt, redstart_solve):
     def free_fall_example():
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] # [x, vx, y, vy, theta, omega]
@@ -397,8 +482,7 @@ def _(mo):
         plt.legend()
         return plt.gcf()
     free_fall_example()
-    ```
-    """)
+
     return
 
 
