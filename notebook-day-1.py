@@ -740,14 +740,7 @@ def _():
 @app.cell
 def _(SVG, display):
     def world(view_box, *objects):
-        """
-        Construit une scène SVG en coordonnées cartésiennes.
 
-        Paramètres
-        ----------
-        view_box : [x_min, x_max, y_min, y_max]
-        *objects : fragments SVG (str) superposés à la scène
-        """
         x_min, x_max, y_min, y_max = map(float, view_box)
         width = x_max - x_min
         height = y_max - y_min
@@ -862,12 +855,7 @@ def _(mo):
 @app.cell
 def _(M, g, l, np):
     def booster(x, y, theta, f, phi):
-        """
-        Retourne un fragment SVG représentant le booster + la flamme.
 
-        La longueur de flamme suit la règle demandée:
-        - flame = l/2 lorsque f = M*g
-        """
         # Géométrie simple du booster
         body_length = 2.0 * l
         body_width = 0.22
@@ -1030,13 +1018,13 @@ def _(
     redstart_solve,
 ):
     def simulate_case(name, y0, f_phi, T=5.0):
-        """Simule un scénario et renvoie (t, s, html_anim)."""
+
         t_span = [0.0, T]
         sol = redstart_solve(t_span, y0, f_phi)
         t = np.linspace(0.0, T, 500)
         s = sol(t)
 
-        # Fonctions continues pour l'animation
+
         def x_fun(tt):
             return float(sol(tt)[0])
         def y_fun(tt):
@@ -1054,9 +1042,6 @@ def _(
         print(f"  y(T)={s[2,-1]:.3f}, vy(T)={s[3,-1]:.3f}, theta(T)={s[4,-1]:.3f} rad")
         return t, s, anim_html
 
-    # ----------------------------
-    # Définition des 4 scénarios
-    # ----------------------------
     T = 5.0
     y0_std = np.array([0.0, 0.0, 10.0, 0.0, 0.0, 0.0], dtype=float)
 
@@ -1082,9 +1067,7 @@ def _(
 
     results = [simulate_case(name, y0, u, T=T) for (name, y0, u) in cases]
 
-    # ----------------------------
-    # Tracés comparatifs lisibles
-    # ----------------------------
+
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     for ax, (name, _, _), (t, s, _) in zip(axes.flat, cases, results):
         ax.plot(t, s[2], lw=2.0, label="y(t)")
@@ -1099,9 +1082,7 @@ def _(
     plt.tight_layout()
     plt.show()
 
-    # ----------------------------
-    # Affichage des animations SVG
-    # ----------------------------
+
     for (name, _, _), (_, _, anim) in zip(cases, results):
         display(HTML(f"<h4>{name}</h4>"))
         display(HTML(anim))
