@@ -1359,7 +1359,7 @@ def _(J, M, g, l, np):
 
     print("A =\n", A)
     print("\nB =\n", B)
-    return (A,)
+    return A, B
 
 
 @app.cell(hide_code=True)
@@ -1413,6 +1413,48 @@ def _(mo):
     ## 🧩 Controllability
 
     Is the linearized model controllable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On applique le **critère de Kalman** : le système $(A, B)$ de dimension $n=6$ est contrôlable si et seulement si la matrice de contrôlabilité
+    $$\mathcal{C} = \begin{bmatrix} B & AB & A^2B & \cdots & A^{n-1}B \end{bmatrix} \in \mathbb{R}^{6 \times 12}$$
+    est de rang $n=6$.
+    """)
+    return
+
+
+@app.cell
+def _(A, B, np):
+    def controllability_matrix(A, B):
+        n = A.shape[0]
+        blocks = [B]
+        AiB = B.copy()
+        for _ in range(1, n):
+            AiB = A @ AiB
+            blocks.append(AiB)
+        return np.hstack(blocks)
+
+    C_full = controllability_matrix(A, B)
+    rank_C = np.linalg.matrix_rank(C_full)
+    n = A.shape[0]
+
+    print(f"Dimension de l'espace d'état : n = {n}")
+    print(f"Rang de C : {rank_C}")
+    if rank_C == n:
+        print("Le système COMPLET est CONTRÔLABLE")
+    else:
+        print(f"Non contrôlable (rang {rank_C} < {n})")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Puisque le rang est égale à la dimension de l'espace n=6, on constate alors que le système complet est contrôlable
     """)
     return
 
