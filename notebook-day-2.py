@@ -71,7 +71,7 @@ def _():
     import numpy as np
     import numpy.linalg as la
 
-    return np, plt, scipy
+    return la, np, plt, scipy
 
 
 @app.cell(hide_code=True)
@@ -1430,7 +1430,7 @@ def _(A, B, controllability_matrix, np):
         print("Le système LATÉRAL RÉDUIT est CONTRÔLABLE")
     else:
         print("Non contrôlable")
-    return (A_lat,)
+    return A_lat, B_lat
 
 
 @app.cell(hide_code=True)
@@ -1458,16 +1458,6 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
- 
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## 🧩 Linear Model in Free Fall
-
     On applique le modèle linéarisé au sous-système latéral $(\Delta x,\, \Delta\dot{x},\, \Delta\theta,\, \Delta\dot{\theta})$ avec $\phi(t) = 0$.
 
     ### Mise en équation
@@ -1588,65 +1578,131 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Avec $K=[0,0,k_3,k_4]$, la dynamique en boucle fermée est $\dot{s} = (A_{lat} - B_{lat}K)\,s$.
+    La loi de commande $\Delta\phi = -K\,\Delta s_{lat}$ injectée dans le système latéral donne :
 
-    L'équation de $\theta$ se réduit à :
-    $$\ddot{\theta} = -\frac{Mg\ell}{2J}\,\Delta\phi = +\frac{Mg\ell}{2J}(k_3\Delta\theta + k_4\Delta\omega)$$
+    $$\dot{\Delta s}_{lat} = A_{lat}\,\Delta s_{lat} + B_{lat}\,\Delta\phi = (A_{lat} - B_{lat}\,K)\,\Delta s_{lat} = A_{cl}\,\Delta s_{lat}$$
 
-    c'est-à-dire :
-    $$\ddot{\theta} - \frac{Mg\ell}{2J}k_4\,\dot{\theta} - \frac{Mg\ell}{2J}k_3\,\theta = 0$$
+    Le système en boucle fermée est donc gouverné par la matrice $A_{cl} = A_{lat} - B_{lat}\,K$.
 
-    Pour la stabilité on veut **les deux coefficients négatifs** :
-    - $k_3 < 0$ (rappel vers $\theta=0$, terme proportionnel),
-    - $k_4 < 0$ (amortissement, terme dérivé).
 
-    On fixe $\frac{Mg\ell}{2J} = \frac{1\cdot1\cdot2}{2\cdot1/3}=3$.
 
-    On cherche des pôles pour $s^2 - 3k_4 s - 3k_3 = 0$ avec $Re<0$. On itère.
+    Les deux premiers coefficients de $K$ sont nuls car on ne cherche **pas encore** à corriger la position latérale $x$. On se concentre uniquement sur la stabilisation de l'angle $\theta$. La loi de commande se réduit donc à :
 
-    ## Provenance de $A_{cl} = A_{lat} - B_{lat}\,K$
+    $$\Delta\phi(t) = -k_\theta\,\Delta\theta(t) - k_\omega\,\Delta\omega(t)$$
 
-    ### Point de départ : le modèle linéarisé en boucle ouverte
+    C'est un **correcteur PD** (Proportionnel-Dérivé) sur l'angle :
+    - $k_\theta$ : **gain proportionnel** — crée un couple de rappel vers $\theta = 0$
+    - $k_\omega$ : **gain dérivé** — amortit les oscillations en s'opposant à la vitesse angulaire
 
-    Le système latéral linéarisé s'écrit :
+    On procède par essais successifs en analysant l'effet de chaque gain :
 
-    $$\dot{\Delta s}_{lat} = A_{lat}\,\Delta s_{lat} + B_{lat}\,\Delta\phi$$
+    **Effet de $k_\theta$ (gain proportionnel) :**
+    - Trop petit → correction lente, le propulseur reste incliné longtemps
+    - Trop grand → $\Delta\phi$ dépasse $\pi/2$ (saturation du réacteur, modèle invalide)
 
-    où $\Delta s_{lat} = (\Delta x,\, \Delta\dot{x},\, \Delta\theta,\, \Delta\dot{\theta})^\top$ est l'état
-    et $\Delta\phi$ est l'entrée de commande (angle du réacteur).
+    **Effet de $k_\omega$ (gain dérivé) :**
+    - Trop petit → oscillations non amorties autour de $\theta = 0$
+    - Trop grand → réponse trop lente (sur-amortissement)
 
-    ### Injection de la loi de commande
-
-    On choisit une commande **linéaire par retour d'état** :
-
-    $$\Delta\phi = -K\,\Delta s_{lat}, \qquad K = \begin{bmatrix} 0 & 0 & k_\theta & k_\omega \end{bmatrix}$$
-
-    ce qui donne explicitement :
-
-    $$\Delta\phi = -k_\theta\,\Delta\theta - k_\omega\,\Delta\omega$$
-
-    ### Substitution dans la dynamique
-
-    On remplace $\Delta\phi$ par $-K\,\Delta s_{lat}$ dans l'équation du système :
-
-    $$\dot{\Delta s}_{lat} = A_{lat}\,\Delta s_{lat} + B_{lat}\,(-K\,\Delta s_{lat})$$
-
-    On factorise par $\Delta s_{lat}$ :
-
-    $$\dot{\Delta s}_{lat} = (A_{lat} - B_{lat}\,K)\,\Delta s_{lat}$$
-
-    ### Résultat : la matrice de boucle fermée
-
-    On pose $A_{cl} = A_{lat} - B_{lat}\,K$, d'où :
-
-    $$\boxed{\dot{\Delta s}_{lat} = A_{cl}\,\Delta s_{lat}}$$
-
-    Le système en boucle fermée est **autonome** : il n'y a plus d'entrée externe,
-    la commande a été absorbée dans la dynamique via $K$.
-    Les valeurs propres de $A_{cl}$ (et non plus de $A_{lat}$) déterminent la stabilité.
-    En choisissant $K$ judicieusement, on les place dans le demi-plan gauche
-    ($\text{Re}(\lambda) < 0$) pour garantir la convergence.
+    **Règle pratique :** on commence par fixer $k_\omega \approx 2\,k_\theta$ pour avoir un amortissement correct, puis on ajuste $k_\theta$ pour le temps de convergence.
     """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, la, np, plt, scipy):
+
+
+    def simulate_lateral_closed_loop(K, t_end=30, s0=None):
+        """Simule le système latéral en boucle fermée avec le gain K."""
+        if s0 is None:
+            s0 = np.array([0.0, 0.0, 45/180*np.pi, 0.0])
+    
+        A_cl = A_lat - B_lat @ K  # Matrice boucle fermée
+    
+        def f_closed_loop(t, s):
+            return A_cl @ s
+    
+        sol = scipy.integrate.solve_ivp(
+            f_closed_loop, [0, t_end], s0, dense_output=True, max_step=0.01
+        )
+        return sol.sol
+
+    def plot_controller(K, label="", t_end=30):
+        """Trace les résultats de simulation pour un gain K donné."""
+        s0 = np.array([0.0, 0.0, 45/180*np.pi, 0.0])
+        sol = simulate_lateral_closed_loop(K, t_end=t_end, s0=s0)
+        t_vals = np.linspace(0, t_end, 2000)
+        states = sol(t_vals)
+    
+        Delta_x     = states[0, :]
+        Delta_theta = states[2, :]
+        Delta_phi   = -(K @ states).flatten()  # commande appliquée
+    
+        A_cl = A_lat - B_lat @ K
+        eigs = la.eigvals(A_cl)
+    
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+    
+        axes[0].plot(t_vals, Delta_theta * 180/np.pi, 'r-')
+        axes[0].axhline(0, color='k', ls='--', alpha=0.5)
+        axes[0].set_title(r"$\Delta\theta(t)$ (degrés)")
+        axes[0].set_xlabel("t (s)"); axes[0].grid(True)
+    
+        axes[1].plot(t_vals, Delta_x, 'b-')
+        axes[1].axhline(0, color='k', ls='--', alpha=0.5)
+        axes[1].set_title(r"$\Delta x(t)$ (m)")
+        axes[1].set_xlabel("t (s)"); axes[1].grid(True)
+    
+        axes[2].plot(t_vals, Delta_phi * 180/np.pi, 'g-')
+        axes[2].axhline(90, color='r', ls='--', alpha=0.5, label=r"$\pm 90°$")
+        axes[2].axhline(-90, color='r', ls='--', alpha=0.5)
+        axes[2].set_title(r"$\Delta\phi(t)$ (degrés)")
+        axes[2].set_xlabel("t (s)"); axes[2].legend(); axes[2].grid(True)
+    
+        stable = np.all(np.real(eigs) < 0)
+        plt.suptitle(f"{label} | K={K} | Valeurs propres: {np.round(eigs, 3)} | {'✅ Stable' if stable else 'Instable'}",
+                     fontsize=10)
+        plt.tight_layout()
+        plt.show()
+    
+        print(f"Valeurs propres A_cl : {eigs}")
+        print(f"max|Delta_theta| = {np.max(np.abs(Delta_theta))*180/np.pi:.1f}°")
+        print(f"max|Delta_phi|   = {np.max(np.abs(Delta_phi))*180/np.pi:.1f}°")
+        return eigs
+
+    # --- Tentative 1 : gains initiaux faibles ---
+    print("=== Tentative 1 : k_theta=0.5, k_omega=1.0 ===")
+    K1 = np.array([[0, 0, 0.5, 1.0]])
+    eigs1 = plot_controller(K1, label="Tentative 1")
+    return (plot_controller,)
+
+
+@app.cell
+def _(np, plot_controller):
+
+    print("=== Tentative 2 : k_theta=1.0, k_omega=2.0 ===")
+    K2 = np.array([[0, 0, 1.0, 2.0]])
+    eigs2 = plot_controller(K2, label="Tentative 2")
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, la, np, plot_controller):
+
+    # On cherche une convergence en ~20s -> partie réelle des VPs ~ -0.2
+    # Avec k_theta ~ 0.2/g*J et k_omega equilibrant
+    print("=== Tentative 3 (finale) : k_theta=0.3, k_omega=1.5 ===")
+    K_manual = np.array([[0, 0, 0.3, 1.5]])
+    eigs_manual = plot_controller(K_manual, label="Manuel final", t_end=30)
+
+    print("\n--- Résumé du réglage manuel ---")
+    print(f"K_manual = {K_manual}")
+    A_cl_manual = A_lat - B_lat @ K_manual
+    eigs_final = la.eigvals(A_cl_manual)
+    print(f"Valeurs propres en BF : {np.round(eigs_final, 4)}")
+    stable = np.all(np.real(eigs_final) < 0)
+    print(f"Système asymptotiquement stable : {'OUI' if stable else 'NON'}")
     return
 
 
