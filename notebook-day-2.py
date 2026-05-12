@@ -1693,7 +1693,7 @@ def _(A_lat, B_lat, la, np, plot_controller):
     # On cherche une convergence en ~20s -> partie réelle des VPs ~ -0.2
     # Avec k_theta ~ 0.2/g*J et k_omega equilibrant
     print("=== Tentative 3 (finale) : k_theta=0.3, k_omega=1.5 ===")
-    K_manual = np.array([[0, 0, -0.3, -1.5]])
+    K_manual = np.array([[0, 0, -0.5, -1.0]])
     eigs_manual = plot_controller(K_manual, label="Manuel final", t_end=30)
 
     print("\n--- Résumé du réglage manuel ---")
@@ -1877,8 +1877,8 @@ def _(A_lat, B_lat, la, np, plot_controller):
 def _(A_lat, B_lat, la, lqr, np, plot_controller):
     # Exploration de différentes pondérations LQR
     print("=== LQR avec pondération plus agressive sur x ===")
-    Q2 = np.diag([5.0, 0.5, 10.0, 2.0])
-    R2 = np.array([[0.5]])
+    Q2 = np.diag([0.5, 0.1, 7.0, 0.0])
+    R2 = np.array([[3.5]])
     K_oc2, _ = lqr(A_lat, B_lat, Q2, R2)
     print(f"K_oc2 = {K_oc2}")
     eigs_oc2 = la.eigvals(A_lat - B_lat @ K_oc2)
