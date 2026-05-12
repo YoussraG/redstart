@@ -456,19 +456,39 @@ def _(mo):
 def _(l, np, plt, redstart_solve):
     def free_fall_example():
         t_span = [0.0, 5.0]
-        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] # [x, vx, y, vy, theta, omega]
+        y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]  # [x, vx, y, vy, theta, omega]
+
         def f_phi(t, y):
-            return np.array([0.0, 0.0]) # [f, phi]
+            return np.array([0.0, 0.0])  # [f, phi]
+
         sol = redstart_solve(t_span, y0, f_phi)
+
         t = np.linspace(t_span[0], t_span[1], 1000)
         y_t = sol(t)[2]
+
+        # Valeur cible
+        l_val = l
+
+        # 🔍 Trouver le moment où y(t) ≈ l
+        idx = np.argmin(np.abs(y_t - l_val))
+        t_cross = t[idx]
+        y_cross = y_t[idx]
+
+        # 📊 Plot
         plt.plot(t, y_t, label=r"$y(t)$ (height in meters)")
-        plt.plot(t, l * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+        plt.plot(t, l_val * np.ones_like(t), color="grey", ls="--", label=r"$y=\ell$")
+        plt.scatter([t_cross], [y_cross], color="red", label=f"crossing at t ≈ {t_cross:.2f}s")
+
         plt.title("Free Fall")
         plt.xlabel("time $t$")
         plt.grid(True)
         plt.legend()
+
+        # 🖨️ Affichage du temps
+        print(f"Le centre de masse atteint y = l vers t ≈ {t_cross:.3f} s")
+
         return plt.gcf()
+
     free_fall_example()
     return
 
@@ -647,22 +667,51 @@ def _(mo):
 @app.cell
 def _(svg, transform):
     def world(view_box, *objects):
-        x_min, x_max, y_min, y_max = view_box    
+        # Décomposition de la zone visible
+        x_min, x_max, y_min, y_max = view_box
+
+        # Calcul des dimensions de la scène
         width, height = x_max - x_min, y_max - y_min
 
         return svg.svg(
-          xmlns="http://www.w3.org/2000/svg",
-          viewBox=f"0 0 {width} {height}",
-          style="max-height:80vh")(
-              transform.translate(x=-x_min, y=y_max)(
-                  transform.scale(y=-1.0)(
-                      # Sky
-                      svg.rect(x=-1e3, y=0, width=2e3, height=1e3, fill="lightskyblue"),
-                      # Ground
-                      svg.rect(x=-1e3, y=-2e3, width=2e3, height=2e3, fill="sandybrown"),
-                      # Target 
-                      svg.rect(x=-1, y =-1, width=2, height=1, fill="lightgreen"),
-                      *objects,
+            xmlns="http://www.w3.org/2000/svg",
+            viewBox=f"0 0 {width} {height}",  # système de coordonnées SVG
+            style="max-height:80vh"            # limite la taille à l’écran
+        )(
+            # On transforme le repère pour correspondre aux maths
+
+            transform.translate(x=-x_min, y=y_max)(   # recentrage du monde
+                transform.scale(y=-1.0)(             # inversion de l’axe Y
+
+                    # 🌤️ Ciel (fond supérieur)
+                    svg.rect(
+                        x=-1e3,
+                        y=0,
+                        width=2e3,
+                        height=1e3,
+                        fill="lightskyblue"
+                    ),
+
+                    # 🌍 Sol (fond inférieur)
+                    svg.rect(
+                        x=-1e3,
+                        y=-2e3,
+                        width=2e3,
+                        height=2e3,
+                        fill="sandybrown"
+                    ),
+
+                    # 🎯 Cible
+                    svg.rect(
+                        x=-1,
+                        y=-1,
+                        width=2,
+                        height=1,
+                        fill="lightgreen"
+                    ),
+
+                    # 🧩 objets dynamiques ajoutés par l'utilisateur
+                    *objects,
                 )
             )
         )
@@ -763,18 +812,45 @@ def _(mo):
 @app.cell
 def _(M, g, l, np, svg, transform):
     def booster(x, y, theta, f, phi):
+        # 🔥 Calcul de la longueur de la flamme
+        # l : longueur du moteur (variable globale supposée)
+        # f : force de poussée
+        # M : masse
+        # g : gravité
+        #
+        # 👉 Plus la poussée est grande, plus la flamme est longue
         flame_length = (l / 2) * (f / M / g)
-        return transform.translate(x, y)(
-            transform.rotate(theta / np.pi * 180.0)(
-                svg.rect(x=-l/20, y=-l/2, width=l/10, height=l, fill="black"),
-                transform.translate(0, -l / 2)(
-                    transform.rotate(phi / np.pi * 180)(
+
+        return transform.translate(x, y)(  
+            # 📍 Déplacement du moteur à la position (x, y)
+
+            transform.rotate(theta / np.pi * 180.0)(  
+                # 🔄 Rotation du moteur selon l’angle theta
+                # conversion radians → degrés
+
+                # 🧱 Corps du moteur (structure principale)
+                svg.rect(
+                    x=-l/20,              # centre horizontal du moteur
+                    y=-l/2,               # base vers le bas
+                    width=l/10,           # largeur fine
+                    height=l,            # hauteur du moteur
+                    fill="black"         # couleur du moteur
+                ),
+
+                # 🔥 Groupe de la flamme
+                transform.translate(0, -l / 2)(  
+                    # 📍 On place la flamme sous le moteur
+
+                    transform.rotate(phi / np.pi * 180)(  
+                        # 🔄 Orientation de la flamme
+                        # phi = angle d’éjection des gaz
+
                         svg.rect(
-                            x=-l/20,
-                            y=-flame_length,
-                            width=l/10,
-                            height=flame_length,
-                            fill="red",
+                            x=-l/20,              # centrage horizontal
+                            y=-flame_length,      # la flamme part vers le bas
+                            width=l/10,           # même largeur que le moteur
+                            height=flame_length,  # longueur dynamique
+                            fill="red",           # 🔥 couleur flamme
                         )
                     )
                 )
@@ -788,25 +864,51 @@ def _(M, g, l, np, svg, transform):
 def _(M, booster, g, l, mo, np, world):
     mo.hstack(
         [
+            # 🖼️ 1er scénario : fusée sans poussée
             mo.Html(
                 world(
-                    [-3, 3, -2, 4],
-                    booster(0, l/2, 0, 0, 0),
+                    [-3, 3, -2, 4],  # 🌍 zone visible (view_box)
+                    booster(0, l/2, 0, 0, 0),  
+                    # 🚀 moteur :
+                    # position (0, l/2)
+                    # angle theta = 0
+                    # force f = 0 → aucune poussée
+                    # phi = 0 → flamme inexistante
                 )
             ),
+
+            # 🖼️ 2e scénario : poussée verticale simple
             mo.Html(
                 world(
                     [-3, 3, -2, 4],
                     booster(0, l, 0, M * g, 0),
+                    # 🚀 moteur :
+                    # position (0, l)
+                    # theta = 0 → droit
+                    # f = M*g → poussée = poids (équilibre)
+                    # phi = 0 → flamme verticale
                 )
             ),
+
+            # 🖼️ 3e scénario : poussée inclinée + forte
             mo.Html(
                 world(
                     [-3, 3, -2, 4],
-                    booster(-l/2, l, np.pi / 4, 2 * M * g, np.pi / 2),
+                    booster(
+                        -l/2, l,         # 📍 position décalée à gauche
+                        np.pi / 4,       # 🔄 angle du moteur (45°)
+                        2 * M * g,       # 🔥 poussée double du poids
+                        np.pi / 2        # 🔥 flamme orientée latéralement
+                    ),
+                    # 🚀 moteur :
+                    # position inclinée + déplacement horizontal
+                    # forte poussée → flamme plus longue
+                    # orientation de la flamme à 90°
                 )
             ),
         ],
+
+        # 📐 disposition horizontale des 3 scènes
         justify="space-around",
     )
     return
@@ -1145,7 +1247,6 @@ def _(M, g):
     phi_eq   = 0.0        
     theta_eq = 0.0     
     f_eq     = M * g      # poussée = poids
-
     return
 
 
@@ -1617,12 +1718,12 @@ def _(A_lat, B_lat, la, np, plt, scipy):
         """Simule le système latéral en boucle fermée avec le gain K."""
         if s0 is None:
             s0 = np.array([0.0, 0.0, 45/180*np.pi, 0.0])
-    
+
         A_cl = A_lat - B_lat @ K  # Matrice boucle fermée
-    
+
         def f_closed_loop(t, s):
             return A_cl @ s
-    
+
         sol = scipy.integrate.solve_ivp(
             f_closed_loop, [0, t_end], s0, dense_output=True, max_step=0.01
         )
@@ -1634,38 +1735,38 @@ def _(A_lat, B_lat, la, np, plt, scipy):
         sol = simulate_lateral_closed_loop(K, t_end=t_end, s0=s0)
         t_vals = np.linspace(0, t_end, 2000)
         states = sol(t_vals)
-    
+
         Delta_x     = states[0, :]
         Delta_theta = states[2, :]
         Delta_phi   = -(K @ states).flatten()  # commande appliquée
-    
+
         A_cl = A_lat - B_lat @ K
         eigs = la.eigvals(A_cl)
-    
+
         fig, axes = plt.subplots(1, 3, figsize=(15, 4))
-    
+
         axes[0].plot(t_vals, Delta_theta * 180/np.pi, 'r-')
         axes[0].axhline(0, color='k', ls='--', alpha=0.5)
         axes[0].set_title(r"$\Delta\theta(t)$ (degrés)")
         axes[0].set_xlabel("t (s)"); axes[0].grid(True)
-    
+
         axes[1].plot(t_vals, Delta_x, 'b-')
         axes[1].axhline(0, color='k', ls='--', alpha=0.5)
         axes[1].set_title(r"$\Delta x(t)$ (m)")
         axes[1].set_xlabel("t (s)"); axes[1].grid(True)
-    
+
         axes[2].plot(t_vals, Delta_phi * 180/np.pi, 'g-')
         axes[2].axhline(90, color='r', ls='--', alpha=0.5, label=r"$\pm 90°$")
         axes[2].axhline(-90, color='r', ls='--', alpha=0.5)
         axes[2].set_title(r"$\Delta\phi(t)$ (degrés)")
         axes[2].set_xlabel("t (s)"); axes[2].legend(); axes[2].grid(True)
-    
+
         stable = np.all(np.real(eigs) < 0)
         plt.suptitle(f"{label} | K={K} | Valeurs propres: {np.round(eigs, 3)} | {'✅ Stable' if stable else 'Instable'}",
                      fontsize=10)
         plt.tight_layout()
         plt.show()
-    
+
         print(f"Valeurs propres A_cl : {eigs}")
         print(f"max|Delta_theta| = {np.max(np.abs(Delta_theta))*180/np.pi:.1f}°")
         print(f"max|Delta_phi|   = {np.max(np.abs(Delta_phi))*180/np.pi:.1f}°")
@@ -1932,7 +2033,7 @@ def _(K_pp, M, g, l, np, plt, redstart_solve):
         # theta(0) = 45 degrés = pi/4 rad
         y0 = [0.0, 0.0, 10.0, 0.0, np.pi/4, 0.0]
         t_span = [0.0, t_end]
-    
+
         # L'équilibre de référence (on utilise y_e = y(t) pour ne pas contraindre y)
         def f_phi_controller(t, state):
             x, vx, y, vy, theta, omega = state
@@ -1944,52 +2045,52 @@ def _(K_pp, M, g, l, np, plt, redstart_solve):
             phi = np.clip(delta_phi, -np.pi/2, np.pi/2)
             f = M * g  # Force fixée à l'équilibre
             return np.array([f, phi])
-    
+
         sol = redstart_solve(t_span, y0, f_phi_controller)
-    
+
         t_vals = np.linspace(0, t_end, 3000)
         states = sol(t_vals)
-    
+
         x_t     = states[0, :]
         y_t     = states[2, :]
         theta_t = states[4, :]
-    
+
         # Recalculer phi
         phi_t = np.array([
             np.clip(-(K @ np.array([states[0,i], states[1,i], states[4,i], states[5,i]])).item(),
                     -np.pi/2, np.pi/2)
             for i in range(len(t_vals))
         ])
-    
+
         fig, axes = plt.subplots(2, 2, figsize=(14, 8))
-    
+
         axes[0, 0].plot(t_vals, theta_t * 180/np.pi, 'r-', linewidth=2)
         axes[0, 0].axhline(0, color='k', ls='--', alpha=0.5)
         axes[0, 0].axhline(90, color='orange', ls=':', alpha=0.7, label='±90°')
         axes[0, 0].axhline(-90, color='orange', ls=':', alpha=0.7)
         axes[0, 0].set_title(r"$\theta(t)$ — Inclinaison (degrés)")
         axes[0, 0].set_xlabel("t (s)"); axes[0, 0].legend(); axes[0, 0].grid(True)
-    
+
         axes[0, 1].plot(t_vals, x_t, 'b-', linewidth=2)
         axes[0, 1].axhline(0, color='k', ls='--', alpha=0.5)
         axes[0, 1].set_title(r"$x(t)$ — Position latérale (m)")
         axes[0, 1].set_xlabel("t (s)"); axes[0, 1].grid(True)
-    
+
         axes[1, 0].plot(t_vals, phi_t * 180/np.pi, 'g-', linewidth=2)
         axes[1, 0].axhline(90, color='r', ls='--', alpha=0.5, label='±90° (saturation)')
         axes[1, 0].axhline(-90, color='r', ls='--', alpha=0.5)
         axes[1, 0].set_title(r"$\phi(t)$ — Angle réacteur (degrés)")
         axes[1, 0].set_xlabel("t (s)"); axes[1, 0].legend(); axes[1, 0].grid(True)
-    
+
         axes[1, 1].plot(t_vals, y_t, 'm-', linewidth=2)
         axes[1, 1].axhline(l/2, color='grey', ls='--', label=r'$y=\ell/2$ (sol)')
         axes[1, 1].set_title(r"$y(t)$ — Hauteur (m)")
         axes[1, 1].set_xlabel("t (s)"); axes[1, 1].legend(); axes[1, 1].grid(True)
-    
+
         plt.suptitle(f"Validation non linéaire — {label}", fontsize=13, fontweight='bold')
         plt.tight_layout()
         plt.show()
-    
+
         # Critères de performance
         idx_20 = np.argmin(np.abs(t_vals - 20))
         print(f"\n--- Résultats à t=20s ({label}) ---")
