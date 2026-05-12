@@ -1709,6 +1709,18 @@ def _(A_lat, B_lat, la, np, plot_controller):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    - **$k_\theta$** est le gain proportionnel sur l'angle : il crée un couple de rappel vers la position verticale.
+    - **$k_\omega$** est le gain dérivé sur la vitesse angulaire : il amortit les oscillations.
+    - Un gain $k_\theta$ trop fort cause des $\Delta\phi$ trop grands (saturation du réacteur).
+    - Le système en boucle fermée est asymptotiquement stable si toutes les valeurs propres de $A_{cl} = A_{lat} - B_{lat}K$ ont une partie réelle strictement négative.
+    - La dérive en $x$ est tolérée pour cette question (on ne corrige que $\theta$).
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Controller Tuned with Pole Assignment
 
     Using pole assignement, find a matrix
@@ -1742,6 +1754,49 @@ def _(mo):
 
     Explain how you find the proper design parameters!
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On utilise `scipy.signal.place_poles` pour placer tous les pôles en boucle fermée à des valeurs souhaitées.
+
+    On choisit des pôles à parties réelles négatives pour assurer :
+    - Convergence en ~20 s → $|\text{Re}(\lambda)| \approx 0.2$ à $0.3$
+    - Pôles complexes conjugués pour avoir un comportement oscillant amorti
+    - Pas de dépassement excessif (parties imaginaires modérées)
+    """)
+    return
+
+
+@app.cell
+def _(A_lat, B_lat, la, np, plot_controller):
+    # Q18 — Contrôleur par placement de pôles
+    from scipy.signal import place_poles
+
+    # Choix des pôles désirés en boucle fermée
+    # On veut convergence en ~20s -> Re(lambda) ~ -0.2 à -0.3
+    # On choisit 2 paires de complexes conjugués légèrement amortis
+    desired_poles = np.array([-0.3 + 0.2j, -0.3 - 0.2j,
+                               -0.2 + 0.1j, -0.2 - 0.1j])
+
+    # Placement de pôles
+    result_pp = place_poles(A_lat, B_lat, desired_poles)
+    K_pp = result_pp.gain_matrix
+
+    print("Gain K_pp obtenu par placement de pôles :")
+    print(K_pp)
+
+    # Vérification
+    A_cl_pp = A_lat - B_lat @ K_pp
+    eigs_pp = la.eigvals(A_cl_pp)
+    print(f"\nValeurs propres en BF (pôles placés) : {np.round(eigs_pp, 4)}")
+    print(f"Pôles désirés : {desired_poles}")
+
+    # Simulation et tracé
+    print("\n=== Simulation avec placement de pôles ===")
+    plot_controller(K_pp, label="Placement de pôles", t_end=30)
     return
 
 
