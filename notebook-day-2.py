@@ -1780,8 +1780,8 @@ def _(A_lat, B_lat, la, np, plot_controller):
     # Choix des pôles désirés en boucle fermée
     # On veut convergence en ~20s -> Re(lambda) 
     # On choisit 2 paires de complexes conjugués légèrement amortis
-    desired_poles = np.array([-0.3 + 0.025j, -0.3 - 0.025j,
-                               -0.2 + 0.05j, -0.2 - 0.05j])
+    desired_poles = np.array([-0.5 + 0.001j, -0.5 - 0.001j,
+                               -0.6 + 0.05j, -0.6 - 0.05j])
 
     # Placement de pôles
     result_pp = place_poles(A_lat, B_lat, desired_poles)
@@ -1877,8 +1877,8 @@ def _(A_lat, B_lat, la, np, plot_controller):
 def _(A_lat, B_lat, la, lqr, np, plot_controller):
     # Exploration de différentes pondérations LQR
     print("=== LQR avec pondération plus agressive sur x ===")
-    Q2 = np.diag([0.5, 0.1, 7.0, 0.0])
-    R2 = np.array([[3.5]])
+    Q2 = np.diag([0.0, 0.1, 7.0, 0.0])
+    R2 = np.array([[2.2]])
     K_oc2, _ = lqr(A_lat, B_lat, Q2, R2)
     print(f"K_oc2 = {K_oc2}")
     eigs_oc2 = la.eigvals(A_lat - B_lat @ K_oc2)
