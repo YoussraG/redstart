@@ -1603,6 +1603,49 @@ def _(mo):
     On fixe $\frac{Mg\ell}{2J} = \frac{1\cdot1\cdot2}{2\cdot1/3}=3$.
 
     On cherche des pôles pour $s^2 - 3k_4 s - 3k_3 = 0$ avec $Re<0$. On itère.
+
+    ## Provenance de $A_{cl} = A_{lat} - B_{lat}\,K$
+
+    ### Point de départ : le modèle linéarisé en boucle ouverte
+
+    Le système latéral linéarisé s'écrit :
+
+    $$\dot{\Delta s}_{lat} = A_{lat}\,\Delta s_{lat} + B_{lat}\,\Delta\phi$$
+
+    où $\Delta s_{lat} = (\Delta x,\, \Delta\dot{x},\, \Delta\theta,\, \Delta\dot{\theta})^\top$ est l'état
+    et $\Delta\phi$ est l'entrée de commande (angle du réacteur).
+
+    ### Injection de la loi de commande
+
+    On choisit une commande **linéaire par retour d'état** :
+
+    $$\Delta\phi = -K\,\Delta s_{lat}, \qquad K = \begin{bmatrix} 0 & 0 & k_\theta & k_\omega \end{bmatrix}$$
+
+    ce qui donne explicitement :
+
+    $$\Delta\phi = -k_\theta\,\Delta\theta - k_\omega\,\Delta\omega$$
+
+    ### Substitution dans la dynamique
+
+    On remplace $\Delta\phi$ par $-K\,\Delta s_{lat}$ dans l'équation du système :
+
+    $$\dot{\Delta s}_{lat} = A_{lat}\,\Delta s_{lat} + B_{lat}\,(-K\,\Delta s_{lat})$$
+
+    On factorise par $\Delta s_{lat}$ :
+
+    $$\dot{\Delta s}_{lat} = (A_{lat} - B_{lat}\,K)\,\Delta s_{lat}$$
+
+    ### Résultat : la matrice de boucle fermée
+
+    On pose $A_{cl} = A_{lat} - B_{lat}\,K$, d'où :
+
+    $$\boxed{\dot{\Delta s}_{lat} = A_{cl}\,\Delta s_{lat}}$$
+
+    Le système en boucle fermée est **autonome** : il n'y a plus d'entrée externe,
+    la commande a été absorbée dans la dynamique via $K$.
+    Les valeurs propres de $A_{cl}$ (et non plus de $A_{lat}$) déterminent la stabilité.
+    En choisissant $K$ judicieusement, on les place dans le demi-plan gauche
+    ($\text{Re}(\lambda) < 0$) pour garantir la convergence.
     """)
     return
 
