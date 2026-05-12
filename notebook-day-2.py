@@ -1878,7 +1878,7 @@ def _(A_lat, B_lat, la, lqr, np, plot_controller):
     # Exploration de différentes pondérations LQR
     print("=== LQR avec pondération plus agressive sur x ===")
     Q2 = np.diag([0.0, 0.1, 7.0, 0.0])
-    R2 = np.array([[2.2]])
+    R2 = np.array([[2.5]])
     K_oc2, _ = lqr(A_lat, B_lat, Q2, R2)
     print(f"K_oc2 = {K_oc2}")
     eigs_oc2 = la.eigvals(A_lat - B_lat @ K_oc2)
