@@ -972,37 +972,75 @@ def _(mo):
 @app.cell
 def _(M, animate_transform, g, l, np, svg):
     def booster_anim(x, y, theta, f, phi, T):
+        # 🎯 Objectif :
+        # Créer un moteur de fusée ANIMÉ dans le temps (T)
+
+        # ------------------------------------------------------------
+        # 🧠 1. Gestion des paramètres constants ou fonctions
+        # ------------------------------------------------------------
+
         if not callable(theta):
             theta_cst = theta
             theta = lambda t: theta_cst
+            # 👉 si theta est un nombre fixe
+            # on le transforme en fonction constante du temps
+
         if not callable(phi):
             phi_cst = phi
             phi = lambda t: phi_cst
+            # 👉 même logique pour phi (angle de la flamme)
+
+        # ------------------------------------------------------------
+        # 🔄 2. Conversion radians → degrés (pour SVG)
+        # ------------------------------------------------------------
 
         def theta_deg(t):
+            # 🔄 angle du moteur en degrés à l’instant t
             return theta(t) / np.pi * 180.0
 
         def phi_deg(t):
+            # 🔄 angle de la flamme en degrés à l’instant t
             return phi(t) / np.pi * 180.0
 
+        # ------------------------------------------------------------
+        # 🚀 3. Construction de l’animation SVG
+        # ------------------------------------------------------------
+
         return animate_transform.translate(x, y, T=T)(
+            # 📍 Déplacement global du moteur dans le monde
+
             animate_transform.rotate(theta_deg, T=T)(
+                # 🔄 rotation du moteur dans le temps
+
+                # 🧱 CORPS DU MOTEUR
                 svg.rect(
-                    x=-l / 20,
-                    y=-l/2,
-                    width=l / 10,
-                    height=l,
-                    fill="black",
+                    x=-l / 20,        # centrage horizontal
+                    y=-l / 2,         # base du moteur
+                    width=l / 10,     # largeur fine
+                    height=l,         # hauteur du moteur
+                    fill="black",    # couleur du moteur
                 ),
+
+                # --------------------------------------------------------
+                # 🔥 FLAMME + PHYSIQUE
+                # --------------------------------------------------------
+
                 animate_transform.translate(y=-l/2, T=T)(
+                    # 📍 positionne la flamme sous le moteur
+
                     animate_transform.rotate(phi_deg, T=T)(
+                        # 🔄 orientation dynamique de la flamme
+
                         animate_transform.scale(y=f, T=T)(
+                            # 📊 intensité de la poussée dans le temps
+                            # f agit comme un facteur de longueur
+
                             svg.rect(
                                 x=-l/20,
                                 y=-1/M/g,
                                 width=l / 10,
                                 height=1/M/g,
-                                fill="red",
+                                fill="red",  # 🔥 flamme
                             )
                         )
                     )
@@ -1016,18 +1054,62 @@ def _(M, animate_transform, g, l, np, svg):
 @app.cell
 def _(M, booster_anim, g, l, np):
     def booster_anim_0():
+        # ⏱️ Durée totale de l’animation
         T = 5.0
+
+        # ------------------------------------------------------------
+        # 📍 1. Position X du moteur dans le temps
+        # ------------------------------------------------------------
         def x(t):
+            # Le moteur se déplace de gauche à droite progressivement
+            # - commence à -l/2
+            # - finit à +l/2
             return -l/2 + l * (t / T)
+
+        # ------------------------------------------------------------
+        # 📍 2. Position Y du moteur dans le temps
+        # ------------------------------------------------------------
         def y(t):
+            # Le moteur monte progressivement
+            # - commence à l/2
+            # - monte jusqu’à l
             return l/2 + l/2 * (t / T)
+
+        # ------------------------------------------------------------
+        # 🔄 3. Rotation du moteur
+        # ------------------------------------------------------------
         def theta(t):
+            # Le moteur fait une rotation complète (0 → 2π)
+            # proportionnelle au temps
             return (t / T) * 2 * np.pi
+
+        # ------------------------------------------------------------
+        # 🔥 4. Force de poussée
+        # ------------------------------------------------------------
         def f(t):
+            # La poussée augmente progressivement
+            # de 0 → M * g (équilibre poids)
             return M * g * (t / T)
+
+        # ------------------------------------------------------------
+        # 🔥 5. Orientation de la flamme
+        # ------------------------------------------------------------
         def phi(t):
+            # La flamme tourne aussi complètement (0 → 2π)
+            # effet de rotation dynamique des gaz
             return 2 * np.pi * (t / T)
-        return booster_anim(x, y, theta, f, phi, T=T)
+
+        # ------------------------------------------------------------
+        # 🚀 6. Lancement de l’animation complète
+        # ------------------------------------------------------------
+        return booster_anim(
+            x,        # position horizontale animée
+            y,        # position verticale animée
+            theta,    # rotation du moteur
+            f,        # intensité de la poussée
+            phi,      # orientation de la flamme
+            T=T       # durée totale
+        )
 
     return (booster_anim_0,)
 
@@ -1068,6 +1150,7 @@ def _(mo):
 
 @app.cell
 def _(booster_anim, mo, np, redstart_solve, world):
+    # chute libre
     def anim_1():
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0] 
@@ -1092,6 +1175,7 @@ def _(booster_anim, mo, np, redstart_solve, world):
 
 @app.cell
 def _(M, booster_anim, g, mo, np, redstart_solve, world):
+    #Booster sous force constante
     def anim_2():
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
@@ -1116,6 +1200,7 @@ def _(M, booster_anim, g, mo, np, redstart_solve, world):
 
 @app.cell
 def _(M, booster_anim, g, mo, np, redstart_solve, world):
+    # animation d'un booster avec angle de poussée
     def anim_3():
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0]
@@ -1140,6 +1225,7 @@ def _(M, booster_anim, g, mo, np, redstart_solve, world):
 
 @app.cell
 def _(booster_anim, mo, np, redstart_solve, world):
+    # booster avec force décroissante avec le temps
     def anim_4():
         t_span = [0.0, 5.0]
         y0 = [0.0, 0.0, 10.0, -2.0, 0.0, 0.0]
@@ -2138,12 +2224,7 @@ def _(A_lat, B_lat, K_manual, K_oc2, K_pp, la, np):
         print(f"  Valeurs propres BF : {np.round(eigs, 3)}")
         print(f"  Stable : {'stable' if stable1 else 'pas stable'}")
         t_conv = -1 / np.max(np.real(eigs[np.real(eigs) < 0])) * 5  # ~5 constantes de temps
-        print(f"  Temps de convergence estimé : ~{t_conv:.1f} s")
-    return
-
-
-@app.cell
-def _():
+        print(f"  Temps de convergence estimé : ~{t_conv:.1f} h")
     return
 
 
