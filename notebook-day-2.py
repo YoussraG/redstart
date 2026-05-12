@@ -1236,6 +1236,135 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    On introduit les écarts par rapport à l’équilibre :
+
+    \[
+    (x^*, y^*, \theta^* = 0,\ f^* = Mg,\ \phi^* = 0)
+    \]
+
+    Les variables de perturbation sont définies par :
+
+    \[
+    \Delta x = x - x^*,
+    \qquad
+    \Delta y = y - y^*,
+    \qquad
+    \Delta \theta = \theta,
+    \qquad
+    \Delta f = f - Mg,
+    \qquad
+    \Delta \phi = \phi
+    \]
+
+    Linéarisation de chaque équation
+
+    On développe :
+
+    \[
+    F(s^* + \delta s,\ f^* + \Delta f,\ \phi^* + \Delta\phi)
+    \]
+
+    au premier ordre.
+
+
+    Axe horizontal
+
+    On utilise les approximations petits angles :
+
+    \[
+    \sin(\Delta\theta + \Delta\phi)
+    \approx
+    \Delta\theta + \Delta\phi
+    \]
+
+    et :
+
+    \[
+    \Delta f \cdot \Delta\phi \approx 0
+    \]
+
+    On obtient alors :
+
+    \[
+    \boxed{
+    \Delta\ddot{x}
+    =
+    g\,(\Delta\theta + \Delta\phi)
+    }
+    \]
+
+
+
+    Axe vertical
+
+    Avec :
+
+    \[
+    \cos(\Delta\theta + \Delta\phi)
+    \approx 1
+    \]
+
+    on obtient :
+
+    \[
+    \boxed{
+    \Delta\ddot{y}
+    =
+    \frac{\Delta f}{M}
+    }
+    \]
+
+
+
+    Rotation
+
+    On utilise :
+
+    \[
+    \sin(\Delta\phi)
+    \approx
+    \Delta\phi
+    \]
+
+    et :
+
+    \[
+    (Mg + \Delta f)\Delta\phi
+    \approx
+    Mg\,\Delta\phi
+    \]
+
+    Ainsi :
+
+    \[
+    \boxed{
+    \Delta\ddot{\theta}
+    =
+    \frac{\ell Mg}{2J}\,\Delta\phi
+    =
+    \frac{6g}{\ell}\,\Delta\phi
+    }
+    \]
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+ 
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Standard Form
 
     1. What are the matrices $A$ and $B$ associated to this linear model in standard form?
