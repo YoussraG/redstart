@@ -1236,128 +1236,25 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    On introduit les écarts par rapport à l’équilibre :
+    On pose :
+    $$x = x_{eq} + \Delta x,\quad v_x = \Delta v_x,\quad y = y_{eq} + \Delta y,\quad v_y = \Delta v_y,\quad \theta = \Delta\theta,\quad \omega = \Delta\omega$$
+    $$f = Mg + \Delta f,\quad \phi = \Delta\phi$$
 
-    \[
-    (x^*, y^*, \theta^* = 0,\ f^* = Mg,\ \phi^* = 0)
-    \]
+    On développe $F$ au premier ordre autour de $(s_{eq}, f_{eq}, \phi_{eq})=(\cdot,\, 0,0,\, 0,0,\, Mg,\, 0)$.
 
-    Les variables de perturbation sont définies par :
+    Les dérivées partielles de $F$ en l'équilibre ($\theta=0$, $\phi=0$, $f=Mg$) donnent :
 
-    \[
-    \Delta x = x - x^*,
-    \qquad
-    \Delta y = y - y^*,
-    \qquad
-    \Delta \theta = \theta,
-    \qquad
-    \Delta f = f - Mg,
-    \qquad
-    \Delta \phi = \phi
-    \]
+    $$\Delta\dot{v}_x = -\frac{\Delta f}{M}\sin(0) - \frac{Mg}{M}\cos(0)\,\Delta\theta - \frac{Mg}{M}\cos(0)\,\Delta\phi = -g\,\Delta\theta - g\,\Delta\phi$$
 
-    Linéarisation de chaque équation
+    $$\Delta\dot{v}_y = +\frac{\Delta f}{M}\cos(0) - \frac{Mg}{M}\sin(0)\,(\Delta\theta+\Delta\phi) = \frac{\Delta f}{M}$$
 
-    On développe :
+    $$\Delta\dot{\omega} = -\frac{Mg}{J}\frac{\ell}{2}\cos(0)\,\Delta\phi = -\frac{Mg\ell}{2J}\,\Delta\phi$$
 
-    \[
-    F(s^* + \delta s,\ f^* + \Delta f,\ \phi^* + \Delta\phi)
-    \]
+    Système linéarisé complet :
 
-    au premier ordre.
-
-
-    Axe horizontal
-
-    On utilise les approximations petits angles :
-
-    \[
-    \sin(\Delta\theta + \Delta\phi)
-    \approx
-    \Delta\theta + \Delta\phi
-    \]
-
-    et :
-
-    \[
-    \Delta f \cdot \Delta\phi \approx 0
-    \]
-
-    On obtient alors :
-
-    \[
-    \boxed{
-    \Delta\ddot{x}
-    =
-    g\,(\Delta\theta + \Delta\phi)
-    }
-    \]
-
-
-
-    Axe vertical
-
-    Avec :
-
-    \[
-    \cos(\Delta\theta + \Delta\phi)
-    \approx 1
-    \]
-
-    on obtient :
-
-    \[
-    \boxed{
-    \Delta\ddot{y}
-    =
-    \frac{\Delta f}{M}
-    }
-    \]
-
-
-
-    Rotation
-
-    On utilise :
-
-    \[
-    \sin(\Delta\phi)
-    \approx
-    \Delta\phi
-    \]
-
-    et :
-
-    \[
-    (Mg + \Delta f)\Delta\phi
-    \approx
-    Mg\,\Delta\phi
-    \]
-
-    Ainsi :
-
-    \[
-    \boxed{
-    \Delta\ddot{\theta}
-    =
-    \frac{\ell Mg}{2J}\,\Delta\phi
-    =
-    \frac{6g}{\ell}\,\Delta\phi
-    }
-    \]
-    """)
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md(r"""
- 
+    $$\Delta\dot{v}_x = -g\,\Delta\theta - g\,\Delta\phi$$
+    $$\Delta\dot{v}_y = \frac{1}{M}\,\Delta f$$
+    $$\Delta\dot{\omega} = -\frac{Mg\ell}{2J}\,\Delta\phi$$
     """)
     return
 
@@ -1412,35 +1309,25 @@ def _(mo):
     \end{pmatrix}
     \]
 
-    Les matrices d’état et d’entrée sont alors :
 
-    \[
-    A
-    =
-    \begin{pmatrix}
+    Des équations de Q11 on lit directement :
+
+    $$A = \begin{bmatrix}
     0 & 1 & 0 & 0 & 0 & 0 \\
-    0 & 0 & 0 & 0 & g & 0 \\
+    0 & 0 & 0 & 0 & -g & 0 \\
     0 & 0 & 0 & 1 & 0 & 0 \\
     0 & 0 & 0 & 0 & 0 & 0 \\
     0 & 0 & 0 & 0 & 0 & 1 \\
     0 & 0 & 0 & 0 & 0 & 0
-    \end{pmatrix}
-    \]
-
-    et :
-
-    \[
-    B
-    =
-    \begin{pmatrix}
+    \end{bmatrix}, \qquad
+    B = \begin{bmatrix}
     0 & 0 \\
-    0 & g \\
+    0 & -g \\
     0 & 0 \\
-    \dfrac{1}{M} & 0 \\
+    \frac{1}{M} & 0 \\
     0 & 0 \\
-    0 & \dfrac{l M g}{2J}
-    \end{pmatrix}
-    \]
+    0 & -\frac{Mg\ell}{2J}
+    \end{bmatrix}$$
     """)
     return
 
@@ -1453,28 +1340,26 @@ def _():
 @app.cell
 def _(J, M, g, l, np):
     A = np.array([
-        [0, 1,   0, 0, 0,          0],
-        [0, 0,   0, 0, g,          0],
-        [0, 0,   0, 1, 0,          0],
-        [0, 0,   0, 0, 0,          0],
-        [0, 0,   0, 0, 0,          1],
-        [0, 0,   0, 0, 0,          0],
+        [0,  1,  0,  0,   0,  0],
+        [0,  0,  0,  0,  -g,  0],
+        [0,  0,  0,  1,   0,  0],
+        [0,  0,  0,  0,   0,  0],
+        [0,  0,  0,  0,   0,  1],
+        [0,  0,  0,  0,   0,  0]
     ], dtype=float)
 
     B = np.array([
-        [0,      0          ],
-        [0,      g          ],
-        [0,      0          ],
-        [1/M,    0          ],
-        [0,      0          ],
-        [0,      l*M*g/(2*J)],   
+        [0,              0           ],
+        [0,             -g           ],
+        [0,              0           ],
+        [1/M,            0           ],
+        [0,              0           ],
+        [0,  -(M*g*l)/(2*J)          ]
     ], dtype=float)
 
-    print(A)
-
-    print(B)
-
-    return
+    print("A =\n", A)
+    print("\nB =\n", B)
+    return (A,)
 
 
 @app.cell(hide_code=True)
@@ -1483,6 +1368,41 @@ def _(mo):
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Un équilibre est asymptotiquement stable si et seulement si toutes les valeurs propres de $A$ ont une partie réelle **strictement négative**. On calcule $\text{spec}(A)$.
+    """)
+    return
+
+
+@app.cell
+def _(A, np):
+    eigenvalues = np.linalg.eigvals(A)
+    print("Valeurs propres de A :")
+    for ev in eigenvalues:
+        print(f"  λ = {ev:.4f}   Re(λ) = {ev.real:.4f}")
+
+    print()
+    if all(ev.real < 0 for ev in eigenvalues):
+        print("L'équilibre est ASYMPTOTIQUEMENT STABLE")
+    elif all(ev.real <= 0 for ev in eigenvalues):
+        print("Toutes les valeurs propres sont à partie réelle ≤ 0,")
+        print(" mais certaines sont NULLES → l'équilibre est seulement MARGINALEMENT STABLE.")
+        print("Il n'est PAS asymptotiquement stable")
+    else:
+        print("L'équilibre est INSTABLE")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On constate alors que l'équilibre n'est pas asymptotiquement stable
     """)
     return
 
