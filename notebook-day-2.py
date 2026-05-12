@@ -1376,6 +1376,110 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Le système linéarisé s’écrit sous la forme :
+
+    \[
+    \dot{\delta s}
+    =
+    A\,\delta s
+    +
+    B\,\delta u
+    \]
+
+    avec :
+
+    \[
+    \delta s
+    =
+    \begin{pmatrix}
+    \Delta x \\
+    \Delta \dot{x} \\
+    \Delta y \\
+    \Delta \dot{y} \\
+    \Delta \theta \\
+    \Delta \dot{\theta}
+    \end{pmatrix}
+    \]
+
+    et :
+
+    \[
+    \delta u
+    =
+    \begin{pmatrix}
+    \Delta f \\
+    \Delta \phi
+    \end{pmatrix}
+    \]
+
+    Les matrices d’état et d’entrée sont alors :
+
+    \[
+    A
+    =
+    \begin{pmatrix}
+    0 & 1 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & g & 0 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 0 \\
+    0 & 0 & 0 & 0 & 0 & 1 \\
+    0 & 0 & 0 & 0 & 0 & 0
+    \end{pmatrix}
+    \]
+
+    et :
+
+    \[
+    B
+    =
+    \begin{pmatrix}
+    0 & 0 \\
+    0 & g \\
+    0 & 0 \\
+    \dfrac{1}{M} & 0 \\
+    0 & 0 \\
+    0 & \dfrac{l M g}{2J}
+    \end{pmatrix}
+    \]
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(J, M, g, l, np):
+    A = np.array([
+        [0, 1,   0, 0, 0,          0],
+        [0, 0,   0, 0, g,          0],
+        [0, 0,   0, 1, 0,          0],
+        [0, 0,   0, 0, 0,          0],
+        [0, 0,   0, 0, 0,          1],
+        [0, 0,   0, 0, 0,          0],
+    ], dtype=float)
+
+    B = np.array([
+        [0,      0          ],
+        [0,      g          ],
+        [0,      0          ],
+        [1/M,    0          ],
+        [0,      0          ],
+        [0,      l*M*g/(2*J)],   
+    ], dtype=float)
+
+    print(A)
+
+    print(B)
+
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Stability
 
     Is the generic equilibrium asymptotically stable?
