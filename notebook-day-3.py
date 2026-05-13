@@ -5744,7 +5744,7 @@ def _(M, Tr, g, l, np):
         return x, dx, y, dy, theta, dtheta, z, dz
     Tr(1,2,3,4,0.1,0.2,-0.3,-0.4)
     T_inv(*Tr(1,2,3,4,0.1,0.2,-0.3,-0.4))
-    return
+    return (T_inv,)
 
 
 @app.cell
@@ -5783,6 +5783,89 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    Puisque nous avons prouvé que l'état complet et les commandes dépendent des dérivées de $h$ jusqu'à l'ordre 4, nous devons utiliser un polynôme qui permet de fixer la position, la vitesse, l'accélération et le jerk aux deux extrémités (soit $2 \times 4 = 8$ conditions). Un **polynôme de degré 7** est donc le minimum requis pour chaque axe ($h_x$ et $h_y$).
+    """)
+    return
+
+
+@app.cell
+def _(J, M, T_inv, Tr, l, np):
+    def compute(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0,
+                x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf, tf):
+
+        # 1. Transformation vers la sortie plate
+        #    Tr retourne : (hx, hy, dhx, dhy, d2hx, d2hy, d3hx, d3hy)
+        h_start = Tr(x_0, dx_0, y_0, dy_0, theta_0, dtheta_0, z_0, dz_0)
+        h_end   = Tr(x_tf, dx_tf, y_tf, dy_tf, theta_tf, dtheta_tf, z_tf, dz_tf)
+
+        # 2. Polynômes de degré 7 pour chaque axe
+        def solve_poly(y0, dy0, d2y0, d3y0, yf, dyf, d2yf, d3yf, T):
+            M_mat = np.array([
+                [0,       0,       0,       0,      0,     0,   0, 1],
+                [0,       0,       0,       0,      0,     0,   1, 0],
+                [0,       0,       0,       0,      0,     2,   0, 0],
+                [0,       0,       0,       0,      6,     0,   0, 0],
+                [T**7,   T**6,   T**5,   T**4,   T**3,  T**2,  T, 1],
+                [7*T**6, 6*T**5, 5*T**4, 4*T**3, 3*T**2, 2*T,  1, 0],
+                [42*T**5,30*T**4,20*T**3,12*T**2, 6*T,   2,    0, 0],
+                [210*T**4,120*T**3,60*T**2,24*T,  6,     0,    0, 0]
+            ])
+            b = np.array([y0, dy0, d2y0, d3y0, yf, dyf, d2yf, d3yf])
+            return np.linalg.solve(M_mat, b)
+
+        # h_start = (hx, hy, dhx, dhy, d2hx, d2hy, d3hx, d3hy)
+        #  index :    0    1    2    3     4     5     6     7
+        coeff_x = solve_poly(h_start[0], h_start[2], h_start[4], h_start[6],
+                             h_end[0],   h_end[2],   h_end[4],   h_end[6],   tf)
+        coeff_y = solve_poly(h_start[1], h_start[3], h_start[5], h_start[7],
+                             h_end[1],   h_end[3],   h_end[5],   h_end[7],   tf)
+
+        def fun(t):
+            # 3. Évaluation des polynômes et leurs dérivées
+            def eval_poly(c, t):
+                p   = np.poly1d(c)
+                dp  = p.deriv()
+                d2p = dp.deriv()
+                d3p = d2p.deriv()
+                d4p = d3p.deriv()
+                return p(t), dp(t), d2p(t), d3p(t), d4p(t)
+
+            hx,  dhx,  d2hx,  d3hx,  d4hx  = eval_poly(coeff_x, t)
+            hy,  dhy,  d2hy,  d3hy,  d4hy  = eval_poly(coeff_y, t)
+
+            # 4. Inversion : scalaires séparés → T_inv compatible
+            x, dx, y, dy, theta, dtheta, z, dz = T_inv(
+                hx, hy,
+                dhx, dhy,
+                d2hx, d2hy,
+                d3hx, d3hy
+            )
+
+            # 5. Calcul des commandes f et phi
+            d4h_vec = np.array([d4hx, d4hy])
+
+            b_term = (2 * dz * dtheta * np.array([ np.cos(theta),  np.sin(theta)]) +
+                          z * dtheta**2 * np.array([-np.sin(theta),  np.cos(theta)]))
+
+            mat_A = np.array([[np.sin(theta),  np.cos(theta)],
+                              [-np.cos(theta), np.sin(theta)]])
+
+            v = np.linalg.solve(mat_A, M * d4h_vec - b_term)
+            v1, v2 = v
+
+            f   = np.sqrt(z**2 + (J * v2 / (l / 2))**2)
+            phi = np.arctan2(J * v2 / (l / 2), z)
+
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+
+        return fun
+
+    return (compute,)
+
+
 @app.cell
 def _(mo):
     mo.md(r"""
@@ -5800,67 +5883,85 @@ def _(mo):
 
 
 @app.cell
-def _():
-    return
+def _(M, compute, g, l, np, plt):
+    # 1. Génération de la trajectoire
+    tf = 10.0
+    fun = compute(5.0, 0.0, 20.0, -1.0, -np.pi/8, 0.0, -M*g, 0.0,
+                  0.0, 0.0, 2/3*l, 0.0, 0.0, 0.0, -M*g, 0.0, tf)
+
+    t_range = np.linspace(0, tf, 500)
+    results = np.array([fun(t) for t in t_range])
+
+    # Extraction des données
+    x, dx, y, dy, theta, dtheta, z, dz, f, phi = results.T
+
+    # 2. Tracé des variables d'état
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+
+    axs[0, 0].plot(t_range, x, label='x(t)')
+    axs[0, 0].plot(t_range, y, label='y(t)')
+    axs[0, 0].set_title("Position")
+    axs[0, 0].legend()
+
+    axs[0, 1].plot(t_range, theta, color='r')
+    axs[0, 1].set_title("Angle inclinaison (theta)")
+
+    axs[1, 0].plot(t_range, f, color='g')
+    axs[1, 0].set_title("Poussée (f)")
+
+    axs[1, 1].plot(t_range, phi, color='m')
+    axs[1, 1].set_title("Angle Gimbal (phi)")
+
+    plt.tight_layout()
+    plt.show()
+    return f, phi, t_range, theta, x, y
 
 
 @app.cell
-def _():
-    return
+def _(M, f, g, l, mo, np, phi, plt, t_range, theta, x, y):
 
+    from matplotlib.animation import FuncAnimation, PillowWriter
 
-@app.cell
-def _():
-    return
+    fig_anim, ax_anim = plt.subplots(figsize=(6, 8))
+    ax_anim.set_xlim(-2, 8)
+    ax_anim.set_ylim(0, 25)
+    ax_anim.set_aspect('equal')
+    ax_anim.grid(True, linestyle='--', alpha=0.6)
 
+    line,        = ax_anim.plot([], [], 'o-', lw=4, color='black')
+    thrust_line, = ax_anim.plot([], [], '-',  lw=2, color='orange')
 
-@app.cell
-def _():
-    return
+    def update(i):
+        curr_x, curr_y, curr_theta = x[i], y[i], theta[i]
+        curr_f, curr_phi           = f[i], phi[i]
 
+        top_x = curr_x - (l/2)*np.sin(curr_theta)
+        top_y = curr_y + (l/2)*np.cos(curr_theta)
+        bot_x = curr_x + (l/2)*np.sin(curr_theta)
+        bot_y = curr_y - (l/2)*np.cos(curr_theta)
+        line.set_data([top_x, bot_x], [top_y, bot_y])
 
-@app.cell
-def _():
-    return
+        if curr_f > 0.1:
+            f_scale = curr_f / (M * g) * 2
+            flame_x = bot_x + f_scale * np.sin(curr_theta + curr_phi+np.pi)
+            flame_y = bot_y - f_scale * np.cos(curr_theta + curr_phi + np.pi)
+            thrust_line.set_data([bot_x, flame_x], [bot_y, flame_y])
+        else:
+            thrust_line.set_data([], [])
 
+        return line, thrust_line
 
-@app.cell
-def _():
-    return
+    step = 2
+    ani = FuncAnimation(fig_anim, update,
+                        frames=range(0, len(t_range), step),
+                        interval=30, blit=True)
 
+    # Sauvegarde en GIF
+    ani.save("booster.gif", writer=PillowWriter(fps=30))
+    plt.close()
 
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
-    return
-
-
-@app.cell
-def _():
+    # Affichage natif Marimo
+    mo.image("booster.gif")
     return
 
 
