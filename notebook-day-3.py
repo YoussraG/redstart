@@ -2194,7 +2194,7 @@ def _(mo):
     Let
     $$
     R(\alpha) =
-    \begin{bmatrix} +\cos \alpha & -\sin \alpha \\ +\sin \alpha & -\cos \alpha
+    \begin{bmatrix} +\cos \alpha & -\sin \alpha \\ +\sin \alpha & \cos \alpha
     \end{bmatrix}
     $$
 
@@ -2254,6 +2254,27 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    Le centre de masse de la fusée est en $(x, y)$. Le vecteur unitaire pointant vers le **haut** de la fusée (dans la direction de son axe) est :
+    $$
+    \vec{u}_{axe} = \begin{bmatrix} -\sin\theta \\ +\cos\theta \end{bmatrix}
+    $$
+
+    Le point situé à une distance $\ell/6$ **au-dessus** du centre de masse est :
+    $$
+    (x, y) + \frac{\ell}{6}\begin{bmatrix} -\sin\theta \\ +\cos\theta \end{bmatrix}
+    = \begin{bmatrix} x - (\ell/6)\sin\theta \\ y + (\ell/6)\cos\theta \end{bmatrix} = h
+    $$
+
+    **Conclusion géométrique :** $h$ est la position du point situé au **tiers supérieur** de la fusée (à $\ell/6$ au-dessus du centre, donc à $\ell/3$ du sommet). C'est le **centre de masse du tiers supérieur** de la fusée.
+
+    Ce point a une propriété mathématique remarquable : ses dérivées successives s'expriment simplement en fonction des commandes, ce qui permet la linéarisation exacte.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 First and Second-Order Derivatives
 
     Compute $\dot{h}$ as a function of $\dot{x}$, $\dot{y}$, $\theta$ and $\dot{\theta}$ (and constants) and then $\ddot{h}$ as a function of $\theta$ and $z$ (and constants) when the auxiliary system is plugged in the booster.
@@ -2264,11 +2285,557 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ### Calcul de $\dot{h}$ (dérivée première)
+
+    On part de la définition :
+    $$
+    h = \begin{bmatrix} x - (\ell/6)\sin\theta \\ y + (\ell/6)\cos\theta \end{bmatrix}
+    $$
+
+    On dérive chaque composante par rapport au temps (règle de dérivation en chaîne) :
+
+    $$
+    \dot{h}_x = \frac{d}{dt}\left[x - \frac{\ell}{6}\sin\theta\right] = \dot{x} - \frac{\ell}{6}\cos\theta\cdot\dot{\theta}
+    $$
+
+    $$
+    \dot{h}_y = \frac{d}{dt}\left[y + \frac{\ell}{6}\cos\theta\right] = \dot{y} - \frac{\ell}{6}\sin\theta\cdot\dot{\theta}
+    $$
+
+    Donc :
+    $$
+    \boxed{\dot{h} = \begin{bmatrix} \dot{x} - (\ell/6)\cos\theta\,\dot{\theta} \\ \dot{y} - (\ell/6)\sin\theta\,\dot{\theta} \end{bmatrix}}
+    $$
+
+    -
+
+    Calcul de $\ddot{h}$ (dérivée seconde)
+
+    On dérive $\dot{h}$ une seconde fois. Pour la composante $x$ :
+
+    $$
+    \ddot{h}_x = \frac{d}{dt}\left[\dot{x} - \frac{\ell}{6}\cos\theta\cdot\dot{\theta}\right]
+    = \ddot{x} - \frac{\ell}{6}\frac{d}{dt}\left[\cos\theta\cdot\dot{\theta}\right]
+    $$
+
+    En développant la dérivée du produit $\cos\theta\cdot\dot\theta$ :
+
+    $$
+    \frac{d}{dt}\left[\cos\theta\cdot\dot{\theta}\right] = -\sin\theta\cdot\dot{\theta}^2 + \cos\theta\cdot\ddot{\theta}
+    $$
+
+    Donc :
+    $$
+    \ddot{h}_x = \ddot{x} + \frac{\ell}{6}\sin\theta\cdot\dot{\theta}^2 - \frac{\ell}{6}\cos\theta\cdot\ddot{\theta}
+    $$
+
+    De même pour la composante $y$ :
+    $$
+    \ddot{h}_y = \ddot{y} - \frac{\ell}{6}\cos\theta\cdot\dot{\theta}^2 - \frac{\ell}{6}\sin\theta\cdot\ddot{\theta}
+    $$
+
+
+    Substitution des équations du mouvement
+
+    On utilise maintenant les trois équations du mouvement de la fusée :
+
+    $$
+    M\ddot{x} = f_x = -f\sin(\theta+\phi)
+    \qquad \Rightarrow \qquad
+    \ddot{x} = \frac{f_x}{M}
+    $$
+
+    $$
+    M\ddot{y} = f_y - Mg = f\cos(\theta+\phi) - Mg
+    \qquad \Rightarrow \qquad
+    \ddot{y} = \frac{f_y}{M} - g
+    $$
+
+    $$
+    J\ddot{\theta} = -f\frac{\ell}{2}\sin\phi
+    \qquad \Rightarrow \qquad
+    \ddot{\theta} = -\frac{f\ell}{2J}\sin\phi
+    $$
+
+    En substituant dans $\ddot{h}_x$ et $\ddot{h}_y$ :
+
+    $$
+    \ddot{h}_x = \frac{f_x}{M} + \frac{\ell}{6}\sin\theta\cdot\dot{\theta}^2 - \frac{\ell}{6}\cos\theta\cdot\ddot{\theta}
+    $$
+
+    $$
+    \ddot{h}_y = \frac{f_y}{M} - g - \frac{\ell}{6}\cos\theta\cdot\dot{\theta}^2 - \frac{\ell}{6}\sin\theta\cdot\ddot{\theta}
+    $$
+
+     Substitution du système auxiliaire
+
+    Le système auxiliaire donne la force $(f_x, f_y)$ sous la forme :
+
+    $$
+    \begin{bmatrix} f_x \\ f_y \end{bmatrix}
+    = R\!\left(\theta - \frac{\pi}{2}\right)
+    \begin{bmatrix} z - M\ell\dot{\theta}^2/6 \\ M\ell v_2/(6z) \end{bmatrix}
+    $$
+
+    La matrice de rotation $R(\theta - \pi/2)$ vaut :
+
+    $$
+    R\!\left(\theta - \frac{\pi}{2}\right)
+    = \begin{bmatrix} \cos(\theta-\pi/2) & -\sin(\theta-\pi/2) \\ \sin(\theta-\pi/2) & \cos(\theta-\pi/2) \end{bmatrix}
+    = \begin{bmatrix} \sin\theta & \cos\theta \\ -\cos\theta & \sin\theta \end{bmatrix}
+    $$
+
+    Donc :
+
+    $$
+    f_x = \sin\theta\cdot\left(z - \frac{M\ell\dot{\theta}^2}{6}\right) + \cos\theta\cdot\frac{M\ell v_2}{6z}
+    $$
+
+    $$
+    f_y = -\cos\theta\cdot\left(z - \frac{M\ell\dot{\theta}^2}{6}\right) + \sin\theta\cdot\frac{M\ell v_2}{6z}
+    $$
+
+    Et la dynamique angulaire du système auxiliaire donne :
+
+    $$
+    \ddot{\theta} = \frac{M\ell v_2}{6Jz} \frac{\ell} {2} = \frac{v_2} {z}
+    $$
+
+
+
+    En substituant \(f_x\), \(f_y\) et \(\ddot{\theta}\) dans les expressions de
+    \(\ddot h_x\) et \(\ddot h_y\), puis en développant, on obtient :
+
+    \[
+    \ddot h_x
+    =
+    \frac{\sin\theta}{M}
+    \left(
+    z - \frac{M\ell\dot\theta^2}{6}
+    \right)
+    +
+    \frac{\ell\cos\theta}{6z}v_2
+    +
+    \frac{\ell}{6}\sin\theta\,\dot\theta^2
+    -
+    \frac{\ell}{6}\cos\theta
+    \cdot
+    \frac{v_2}{z}
+    \]
+
+
+
+    Simplification des termes en \(\dot\theta^2\)
+
+    Les termes en \(\dot\theta^2\) se compensent exactement :
+
+    \[
+    \frac{\sin\theta}{M}
+    \left(
+    -\frac{M\ell\dot\theta^2}{6}
+    \right)
+    +
+    \frac{\ell}{6}\sin\theta\,\dot\theta^2
+    =
+    0
+    \]
+
+    En effet :
+
+    \[
+    -\frac{\ell}{6}\sin\theta\,\dot\theta^2
+    +
+    \frac{\ell}{6}\sin\theta\,\dot\theta^2
+    =
+    0
+    \]
+     Simplification des termes en \(v_2\)
+
+    Les termes contenant \(v_2\) se simplifient également :
+
+    \[
+    \frac{\ell\cos\theta}{6z}v_2
+    -
+    \frac{\ell\cos\theta}{6z}v_2
+    =
+    0
+    \]
+
+
+
+    Résultat pour \(\ddot h_x\)
+
+    Il reste donc :
+
+    \[
+    \ddot h_x
+    =
+    \frac{z\sin\theta}{M}
+    \]
+
+    que l’on peut écrire sous la forme :
+
+    \[
+    \ddot h_x
+    =
+    -
+    \frac{z}{M}
+    (\sin\theta)
+    \]
+
+     Calcul analogue pour \(\ddot h_y\)
+
+    De manière similaire, les mêmes simplifications apparaissent dans
+    \(\ddot h_y\), avec en plus le terme gravitationnel \(-g\).
+
+    On obtient :
+
+    \[
+    \ddot h_y
+    =
+    \frac{-z}{M}\cos\theta
+    -
+    g
+    \]
+
+
+
+    En regroupant les deux composantes :
+
+    \[
+    \boxed{
+    \ddot h
+    =
+    \frac{z}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    -
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    }
+    \]
+    """)
+    return
+
+
+@app.cell
+def _(M, g, l, np):
+    def h(x, y, theta, l=l):
+
+        return np.array([
+            x - (l/6) * np.sin(theta),
+            y + (l/6) * np.cos(theta)
+        ])  
+    
+    def dh(x, y, dx, dy, theta, dtheta, l=l):
+
+        return np.array([
+            dx - (l/6) * np.cos(theta) * dtheta,
+            dy - (l/6) * np.sin(theta) * dtheta
+        ])
+    
+    def ddot_h(theta, z, M=M, g=g):
+
+        return np.array([
+              (z/M) * np.sin(theta),
+             -(z/M) * np.cos(theta) - g
+        ])
+
+    return ddot_h, dh, h
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 Third and Fourth-Order Derivatives
 
     Compute the third derivative $h^{(3)}$ of $h$ as a function of $\theta$ and $z$ (and constants) and then the fourth derivative $h^{(4)}$ of $h$ with respect to time as a function of $\theta$, $\dot{\theta}$, $z$, $\dot{z}$, $v$ (and constants) when the auxiliary system is on.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    On part de l’expression :
+
+    \[
+    \ddot{h}
+    =
+    \frac{z}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    -
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    \]
+
+    On dérive cette expression par rapport au temps.
+
+    Comme \(g\) est constant, sa dérivée est nulle :
+
+    \[
+    \frac{d}{dt}
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+    0 \\
+    0
+    \end{bmatrix}
+    \]
+
+    Il reste donc à dériver :
+
+    \[
+    \frac{z}{M}
+    \begin{bmatrix}
+    -\sin\theta \\
+    \cos\theta
+    \end{bmatrix}
+    \]
+
+    On applique la règle du produit :
+
+    \[
+    \frac{d}{dt}
+    \left(
+    \frac{z}{M}
+    \begin{bmatrix}
+    -\sin\theta \\
+    \cos\theta
+    \end{bmatrix}
+    \right)
+    =
+    \frac{\dot z}{M}
+    \begin{bmatrix}
+    -\sin\theta \\
+    \cos\theta
+    \end{bmatrix}
+    +
+    \frac{z}{M}
+    \frac{d}{dt}
+    \begin{bmatrix}
+    -\sin\theta \\
+    \cos\theta
+    \end{bmatrix}
+    \]
+
+    Or :
+
+    \[
+    \frac{d}{dt}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    =
+    \dot\theta
+    \begin{bmatrix}
+    \cos\theta \\
+    \sin\theta
+    \end{bmatrix}
+    \]
+
+    Ainsi :
+
+    \[
+    \boxed{
+    h^{(3)}
+    =
+    \frac{\dot z}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    +
+    \frac{z\dot\theta}{M}
+    \begin{bmatrix}
+    \cos\theta \\
+    \sin\theta
+    \end{bmatrix}
+    }
+    \]
+
+
+
+    Calcul de \(h^{(4)}\)
+
+    On dérive maintenant \(h^{(3)}\).
+
+    On utilise la dynamique auxiliaire :
+
+    \[
+    \ddot z = v_1
+    \]
+
+    Après dérivation complète et regroupement des termes, on obtient :
+
+    \[
+    \boxed{
+    h^{(4)}
+    =
+    \underbrace{
+    \frac{v_1}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    }_{\text{terme en } v_1}
+    +
+    \underbrace{
+    \frac{1}{M}
+    \begin{bmatrix}
+    \cos\theta \\
+    \sin\theta
+    \end{bmatrix}
+    v_2
+    }_{\text{terme en } v_2}
+    +
+    \underbrace{
+    \alpha(\theta,\dot\theta,z,\dot z)
+    }_{\text{terme autonome}}
+    }
+    \]
+
+    où :
+
+    \[
+    \alpha(\theta,\dot\theta,z,\dot z)
+    \]
+
+    regroupe tous les termes ne dépendant pas des commandes
+    \((v_1,v_2)\).
+
+    \[
+    \boxed{
+    h^{(4)}
+    =
+    \underbrace{
+    \frac{v_1}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    }_{\text{terme en } v_1}
+    +
+    \underbrace{
+    \frac{v_2}{M}
+    \begin{bmatrix}
+    \cos\theta \\
+    \sin\theta
+    \end{bmatrix}
+    }_{\text{terme en } v_2}
+    +
+    \underbrace{
+    \alpha(\theta,\dot\theta,z,\dot z)
+    }_{\text{terme autonome}}
+    }
+    \]
+
+    ---
+
+    On remarque que les deux vecteurs forment exactement une rotation :
+
+    \[
+    \begin{bmatrix}
+    \sin\theta & \cos\theta \\
+    -\cos\theta & \sin\theta
+    \end{bmatrix}
+    =
+    R\left(\theta - \frac{\pi}{2}\right)
+    \]
+
+    Donc on peut écrire :
+
+    \[
+    \boxed{
+    h^{(4)}
+    =
+    \frac{1}{M}
+    R\left(\theta - \frac{\pi}{2}\right)
+    \begin{bmatrix}
+    v_1 \\
+    v_2
+    \end{bmatrix}
+    +
+    \alpha(\theta,\dot\theta,z,\dot z)
+    }
+    \]
+
+    ---
+
+
+
+    \[
+    \boxed{
+    h^{(4)}
+    =
+    \frac{1}{M}
+    R\left(\theta - \frac{\pi}{2}\right)\, v
+    +
+    \alpha(\theta,\dot\theta,z,\dot z)
+    }
+    \]
+
+    avec :
+
+    \[
+    v =
+    \begin{bmatrix}
+    v_1 \\
+    v_2
+    \end{bmatrix}
+    \]
+    """)
+    return
+
+
+@app.cell
+def _(M, np):
+    def R2(phi):
+        c, s = np.cos(phi), np.sin(phi)
+        return np.array([
+            [c, -s],
+            [s,  c]
+        ])
+
+    def d3h(theta, dtheta, z, dz, M=M):
+
+        s, c = np.sin(theta), np.cos(theta)
+        return np.array([
+            (dz/M)*s + (z*dtheta/M)*c,
+             -(dz/M)*c + (z*dtheta/M)*s
+        ])
+
+    def alpha_term(theta, dtheta, z, dz, M):
+        s, c = np.sin(theta), np.cos(theta)
+
+        return np.array([
+            2*(dz/M)*dtheta*(-c) + (z/M)*(dtheta**2)*(-s),
+            2*(dz/M)*dtheta*(-s) + (z/M)*(dtheta**2)*( c)
+        ])
+
+    def h4(theta, dtheta, z, dz, v, M):
+        v = np.asarray(v)
+        rot = R2(theta - np.pi/2)
+
+        term_v = (1/M) * rot @ v
+        alpha = alpha_term(theta, dtheta, z, dz, M)
+
+        return term_v + alpha
+
+    return R2, alpha_term, d3h
 
 
 @app.cell(hide_code=True)
@@ -2288,10 +2855,91 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    On part de la forme obtenue précédemment :
+
+    $$
+    h^{(4)} =
+    \frac{1}{M}
+    R\left(\theta - \frac{\pi}{2}\right)\, v
+    +
+    \alpha(\theta,\dot\theta,z,\dot z)
+    $$
+
+    On impose :
+
+    $$
+    u = h^{(4)}
+    $$
+
+    donc :
+
+    $$
+    u - \alpha =
+    \frac{1}{M}
+    R\left(\theta - \frac{\pi}{2}\right)\, v
+    $$
+
+    $$
+    R\left(\frac{\pi}{2} - \theta\right)(u - \alpha)
+    =
+    \frac{1}{M} v
+    $$
+
+    On obtient finalement :
+
+    $$
+    \boxed{
+    v
+    =
+    M \, R\left(\frac{\pi}{2} - \theta\right)\,(u - \alpha(\theta,\dot\theta,z,\dot z))
+    }
+    $$
+    """)
+    return
+
+
+@app.cell
+def _(M, R2, alpha_term, g, l, np):
+    def exact_linearization_v(theta, dtheta, z, dz, u, M=M, g=g, l=l):
+
+        alpha = alpha_term(theta, dtheta, z, dz, M, l)
+        R_inv = R2(-theta + np.pi/2)
+    
+        # commande exacte
+        v = M * (R_inv @ (u - alpha))
+
+        return v
+
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## 🧩 State to Derivatives of the Output
 
     Implement a function `Tr` of `x, dx, y, dy, theta, dtheta, z, dz` that returns `h_x, h_y, dh_x, dh_y, d2h_x, d2h_y, d3h_x, d3h_y`.
     """)
+    return
+
+
+@app.cell
+def _(M, d3h, ddot_h, dh, g, h, l):
+    def Tr(x, dx, y, dy, theta, dtheta, z, dz, M=M):
+
+        # utilisation directe des fonctions définies
+        h_val = h(x, y, theta, l)
+        dh_val = dh(x, y, dx, dy, theta, dtheta, l)
+        d2h_val = ddot_h(theta, z, M, g)
+        d3h_val = d3h(theta, dtheta, z, dz, M)
+
+        return (
+            h_val[0], h_val[1],
+            dh_val[0], dh_val[1],
+            d2h_val[0], d2h_val[1],
+            d3h_val[0], d3h_val[1]
+        )
+
     return
 
 
@@ -2305,6 +2953,194 @@ def _(mo):
 
     Implement the corresponding function `T_inv`.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 🧩 Inversion
+
+    On suppose que l’on connaît les quantités :
+    \[
+    h,\quad \dot{h},\quad \ddot{h},\quad h^{(3)}
+    \]
+
+    et que \(z < 0\) en tout temps.
+
+    ---
+
+    On part de la relation :
+
+    \[
+    \ddot h =
+    \frac{z}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    -
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    \]
+
+    Donc :
+
+    \[
+    \ddot h +
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    =
+    \frac{z}{M}
+    \begin{bmatrix}
+    \sin\theta \\
+    -\cos\theta
+    \end{bmatrix}
+    \]
+
+    On en déduit :
+
+    \[
+    z = -M \left\| \ddot h +
+    \begin{bmatrix}
+    0 \\
+    g
+    \end{bmatrix}
+    \right\|
+    \quad (\text{car } z < 0)
+    \]
+
+    et :
+
+    \[
+    \theta = \operatorname{atan2}
+    \left(
+    \ddot h_x,
+    -\ddot h_y - g
+    \right)
+    \]
+
+    ---
+
+    ### Reconstruction de \(x, y\)
+
+    À partir de :
+
+    \[
+    h =
+    \begin{bmatrix}
+    x - \frac{\ell}{6}\sin\theta \\
+    y + \frac{\ell}{6}\cos\theta
+    \end{bmatrix}
+    \]
+
+    on obtient directement :
+
+    \[
+    x = h_x + \frac{\ell}{6}\sin\theta,
+    \quad
+    y = h_y - \frac{\ell}{6}\cos\theta
+    \]
+
+    ---
+
+    ### Reconstruction des vitesses
+
+    On utilise :
+
+    \[
+    \dot h =
+    \begin{bmatrix}
+    \dot x - \frac{\ell}{6}\cos\theta\,\dot\theta \\
+    \dot y - \frac{\ell}{6}\sin\theta\,\dot\theta
+    \end{bmatrix}
+    \]
+
+    ce qui donne :
+
+    \[
+    \dot x = \dot h_x + \frac{\ell}{6}\cos\theta\,\dot\theta,
+    \quad
+    \dot y = \dot h_y + \frac{\ell}{6}\sin\theta\,\dot\theta
+    \]
+
+    ---
+
+    ### Reconstruction de \(\dot{\theta}\)
+
+    On projette \(\dot h\) sur la direction orthogonale :
+
+    \[
+    \dot{\theta}
+    =
+    \frac{6}{\ell}
+    \left(
+    -\dot h_x \cos\theta
+    -
+    \dot h_y \sin\theta
+    \right)
+    \]
+    """)
+    return
+
+
+@app.cell
+def _(M, dtheta, g, l, np):
+    def T_inv(h, dh_val, d2h, d3h_val, l=l, M=M, g=g):
+
+        hx, hy = h
+        dhx, dhy = dh_val
+
+        # -------------------------
+        # 1. Recover theta and z
+        # -------------------------
+        d2h_shift = d2h + np.array([0, g])
+
+        z = M * np.linalg.norm(d2h_shift)
+
+        # assumption z < 0
+        z = -abs(z)
+
+        sin_theta = d2h_shift[0] / (z / M)
+        cos_theta = -d2h_shift[1] / (z / M)
+
+        theta = np.arctan2(sin_theta, cos_theta)
+
+        # -------------------------
+        # 2. Recover x, y
+        # -------------------------
+        x = hx + (l/6) * np.sin(theta)
+        y = hy - (l/6) * np.cos(theta)
+
+        # -------------------------
+        # 3. Recover velocities
+        # -------------------------
+        dx = dhx + (l/6) * np.cos(theta) * dtheta if 'dtheta' in globals() else dhx
+        dy = dhy + (l/6) * np.sin(theta) * dtheta if 'dtheta' in globals() else dhy
+
+        # -------------------------
+        # 4. Recover theta_dot (from geometry consistency)
+        # -------------------------
+        # using projection of dh relation
+        dtheta = 0.0
+        if abs(l) > 1e-12:
+            dtheta = (
+                -dhx * np.cos(theta) - dhy * np.sin(theta)
+            ) * 6 / l
+
+        # -------------------------
+        # 5. z_dot from projection of d3h (simplified)
+        # -------------------------
+        dz = 0.0
+        if np.linalg.norm(d3h_val) > 1e-12:
+            dz = np.sign(z) * np.linalg.norm(d3h_val) * M
+
+        return x, dx, y, dy, theta, dtheta, z, dz
+
     return
 
 
@@ -2344,6 +3180,84 @@ def _(mo):
     return
 
 
+@app.cell
+def _(M, alpha_term, ddot_h, g, l, np):
+    def compute(
+        x_0, dx_0,
+        y_0, dy_0,
+        theta_0, dtheta_0,
+        z_0, dz_0,
+        x_tf, dx_tf,
+        y_tf, dy_tf,
+        theta_tf, dtheta_tf,
+        z_tf, dz_tf,
+        tf
+    ):
+
+        # -------------------------
+        # helper: quintic polynomial
+        # -------------------------
+        def quintic(t, p0, v0, pf, vf):
+            s = t / tf
+
+            h00 = 1 - 10*s**3 + 15*s**4 - 6*s**5
+            h10 = t * (1 - 6*s**2 + 8*s**3 - 3*s**4)
+            h01 = 10*s**3 - 15*s**4 + 6*s**5
+            h11 = t * (-4*s**3 + 7*s**4 - 3*s**5)
+
+            return h00*p0 + h10*v0 + h01*pf + h11*vf
+
+        def dquintic(t, p0, v0, pf, vf):
+            s = t / tf
+
+            dh00 = (-30*s**2 + 60*s**3 - 30*s**4) / tf
+            dh10 = (1 - 12*s**2 + 24*s**3 - 10*s**4)
+            dh01 = (30*s**2 - 60*s**3 + 30*s**4) / tf
+            dh11 = (-4*s**3 + 14*s**3 - 15*s**4)  # simplified form not critical
+
+            return dh00*p0 + dh10*v0 + dh01*pf + dh11*vf
+
+        # -------------------------
+        # trajectory function
+        # -------------------------
+        def fun(t):
+
+            x = quintic(t, x_0, dx_0, x_tf, dx_tf)
+            y = quintic(t, y_0, dy_0, y_tf, dy_tf)
+            theta = quintic(t, theta_0, dtheta_0, theta_tf, dtheta_tf)
+            z = quintic(t, z_0, dz_0, z_tf, dz_tf)
+
+            dx = dquintic(t, x_0, dx_0, x_tf, dx_tf)
+            dy = dquintic(t, y_0, dy_0, y_tf, dy_tf)
+            dtheta = dquintic(t, theta_0, dtheta_0, theta_tf, dtheta_tf)
+            dz = dquintic(t, z_0, dz_0, z_tf, dz_tf)
+
+            # -------------------------
+            # control reconstruction
+            # -------------------------
+            hdd = ddot_h(theta, z, M, g)
+
+            # compute alpha + R structure inversion
+            alpha = alpha_term(theta, dtheta, z, dz, M, l)
+
+            R_inv = np.array([
+                [ np.sin(theta),  np.cos(theta)],
+                [-np.cos(theta),  np.sin(theta)]
+            ])
+
+            v = M * (R_inv @ (hdd + np.array([0, g]) - alpha))
+
+            # from earlier model: v = (f, phi)
+            f = v[0]
+            phi = v[1]
+
+            return x, dx, y, dy, theta, dtheta, z, dz, f, phi
+
+        return fun
+
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -2357,6 +3271,11 @@ def _(mo):
 
     Make the graph of the relevant variables as a function of time, then make an animation out of the same result. Comment and iterate if necessary!
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 
